@@ -1,6 +1,6 @@
 library(deSolve)
 
-setwd("C:/Users/user/Documents/GitHub/PBPK_Genetic_Algorithm/Kreyling/NLOPTR")
+setwd("")
 
 #####################################
 ### Function to create Parameters ###
