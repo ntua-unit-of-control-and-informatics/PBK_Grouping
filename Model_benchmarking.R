@@ -1,5 +1,5 @@
 # Set the directory from where all relevant data all loaded
-setwd("C:/Users/ptsir/Documents/GitHub/PBPK_Genetic_Algorithm/Kreyling/NLOPTR")
+setwd("")
 
 # Load results from genetic algorithm grouping
 load("FPG_nloptr.RData")
