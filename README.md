@@ -11,11 +11,12 @@ Users should downladed the xlsx files and then use the Nevertheless, The R packa
 * *deSolve*, for solving the ODE system
 ## Script explanation
 Once these packages are installed, all R scripts can be excecuded. The utility of each script is explained below:
-* "Metric_selection.R"  --> Contains R code for selecting the most appropriate metric to be used as objective function in the optimization problem. Note that the MANG estimation approach is used and the models developed using the various metrics use the same initialization
-* "FPG_estimation_scheme.R"  --> Contains R code for the FPG grouping scheme
-* "PNG_estimation_scheme.R"  --> Contains R code for the PNG grouping scheme
-* "SPPCG_estimation_scheme.R"  --> Contains R code for the SPPCG grouping scheme
+* "Metric_selection.R"  --> Contains R code for selecting the most appropriate metric to be used as objective function in the optimization problem. Note that the MANG estimation approach is used and the models developed using the various metrics use the same initialization.
+* "FPG_estimation_scheme.R"  --> Contains R code for the FPG grouping scheme.
+* "PNG_estimation_scheme.R"  --> Contains R code for the PNG grouping scheme.
+* "SPPCG_estimation_scheme.R"  --> Contains R code for the SPPCG grouping scheme.
 * "Model_benchmarking.R"  -->  Contains R code for model benchmarking, i.e. produces the evaluation metrics and plots presented in Tsiros et al. (2023). For this script to run, users should also download the three .RData files found in the data file, which contain the solutions of the "FPG_estimation_scheme.R", "PNG_estimation_scheme.R" and "SPPCG_estimation_scheme.R" files.
+* "Jaqpot_deploy.R"  -->  Contains R code for deploying the model on the Jaqpot platform, thus exposing it as a ready-so-use web service
 
 ## References
 - Tsiros et al
