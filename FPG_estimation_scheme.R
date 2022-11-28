@@ -1,7 +1,7 @@
 
 ga_fitness <- function(chromosome) 
 { 
-  setwd("C:/Users/user/Documents/GitHub/PBPK_Genetic_Algorithm/Kreyling/NLOPTR")
+  setwd("")
   
   #####################################
   ### Function to create Parameters ###
@@ -557,7 +557,7 @@ ga_fitness <- function(chromosome)
 # gareal_raMutation: Uniform random mutation
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
-setwd("C:/Users/user/Documents/GitHub/PBPK_Genetic_Algorithm/Kreyling/NLOPTR")
+setwd("")
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
                      lower = rep(1,16), upper = rep(8.999999,16),  
