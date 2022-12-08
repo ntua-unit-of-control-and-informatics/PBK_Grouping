@@ -1,4 +1,4 @@
-# PBPK_Grouping
+# PBPK Parameter Grouping
 This repository contains the code used for producing the results publicated in Tsiros et al. (2023). 
 ## Data
 All R scripts are self-contained and need two xlsx files to run, found in the data folder. The first one, "Rat physiological parameters.xlsx", contains the physiological parameters of the rat, while the second one, "Kreyling-IV-data.xlsx" includes the rat biodistribution data used for calibrating the model parameters, drawn from Kreyling et al. (2017). Both scripts must be downloaded and placed in the same folder, which will act as the working directory. In each script, the user should search for the command `setwd()` and insert as argument the aforementioned directory where the data reside. 
