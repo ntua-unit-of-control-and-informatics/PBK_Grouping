@@ -638,8 +638,6 @@ ga_fitness <- function(chromosome)
     return(out)
   }
   
-  
-  
   #===============
   # Load data  
   #===============
