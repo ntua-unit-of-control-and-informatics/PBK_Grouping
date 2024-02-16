@@ -185,12 +185,13 @@ ga_fitness <- function(chromosome)
                    "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
                    "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
                    "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
+                   "Pkidney" = Pkidney*CF[10],
                    
-                   "Vmax_baso" = Vmax_baso*CF[10], "Vmax_apical" = Vmax_apical*CF[11],
+                   "Vmax_baso" = Vmax_baso*CF[11], "Vmax_apical" = Vmax_apical,
                    'kdif' = kdif*CF[12], 
-                   "kbile" = kbile*CF[13], "kurine" = kurine*CF[14], "kefflux" = kefflux*CF[15],
-                   "kabs" = kabs*CF[16], "kunabs" = kunabs*CF[17], "GE" = GE*CF[18], "k0" = k0*CF[19],
-                   "Free" = Free*CF[20],  "Pkidney" = Pkidney*CF[21],
+                   "kbile" = kbile*CF[13], "kurine" = kurine, "kefflux" = kefflux*CF[14],
+                   "kabs" = kabs*CF[15], "kunabs" = kunabs, "GE" = GE, "k0" = k0*CF[16],
+                   "Free" = Free*CF[17], 
                    
                   
                    "admin.type" = admin.type,
@@ -740,7 +741,7 @@ ga_fitness <- function(chromosome)
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 21 #number of parameters to be included in the grouping process
+N_genes <- 17 #number of parameters to be included in the grouping process
 N_pars <- 5 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
