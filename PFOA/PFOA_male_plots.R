@@ -1,9 +1,9 @@
-  library(deSolve)
-  library(ggplot2)
-  
-  #=========================
-  #1. Parameters of the model
-  #=========================
+library(deSolve)
+library(ggplot2)
+
+#=========================
+#1. Parameters of the model
+#=========================
 create.params  <- function(user_input){
   with( as.list(user_input),{
     # Initialise a vector for correction factors
@@ -27,7 +27,7 @@ create.params  <- function(user_input){
     #Cardiac Output and Bloodflow (as fraction of cardiac output)
     QCC = 14.0 #cardiac output in L/h/kg^0.75; Brown 1997		 
     QL_hepatic_arteryC = 0.021 #fraction blood flow to liver; Brown 1997	
-    QKC = 0.141 #fraction blood flow to kidney; Brown 1997.
+    QkidneyC = 0.141 #fraction blood flow to kidney; Brown 1997.
     QgonadsC = 0.500/53  	#fraction blood flow to gonads; from doi:10.1124/dmd.107.015644
     QintestineC = 0.451/2.58	#fraction blood flow to intestine; from doi:10.1007/bf02353860
     QspleenC = 0.63/74	#fraction blood flow to spleen; davies 1993
@@ -100,7 +100,7 @@ create.params  <- function(user_input){
     #Cardiac output and blood flows
     QC <- QCC*(BW^0.75)*(1-Htc)	#cardiac output in L/h; adjusted for plasma
     Qlung <- QC
-    QK <- (QKC*QC)	#plasma flow to kidney (L/h)
+    Qkidney <- (QkidneyC*QC)	#plasma flow to kidney (L/h)
     QL_hepatic_artery <- (QL_hepatic_arteryC*QC)	#plasma flow to liver (L/h)
     Qspleen <- (QspleenC*QC)	#plasma flow to spleen (L/h)
     Qgonads <- (QgonadsC*QC)	#plasma flow to gonads (L/h)
@@ -108,9 +108,9 @@ create.params  <- function(user_input){
     Qstomach <- (QstomachC*QC)	#plasma flow to stomach (L/h)
     Qheart <- (QheartC*QC)	#plasma flow to heart (L/h)
     Qbrain <- (QbrainC*QC)	#plasma flow to liver (L/h)
-    Qrest <- QC - QK - QL_hepatic_artery - Qspleen - Qgonads - Qintestine	- Qstomach -
+    Qrest <- QC - Qkidney - QL_hepatic_artery - Qspleen - Qgonads - Qintestine	- Qstomach -
       Qheart - Qbrain#plasma flow to rest of body (L/h)
-    QBal <- QC - (QK + QL_hepatic_artery + Qspleen + Qgonads + Qintestine	+ Qstomach +
+    QBal <- QC - (Qkidney + QL_hepatic_artery + Qspleen + Qgonads + Qintestine	+ Qstomach +
                     Qheart + Qbrain+Qrest) #Balance check of blood flows; should equal zero
     
     #Tissue Volumes
@@ -162,7 +162,7 @@ create.params  <- function(user_input){
     GE = GEC/BW^0.25	#gastric emptying time (/h)
     k0 = k0C/BW^0.25 	#rate of uptake from the stomach into the liver (/h)
     
-    return(list( "QC" = QC, "QK" = QK, "QL_hepatic_artery" = QL_hepatic_artery, "Qrest" = Qrest, 
+    return(list( "QC" = QC, "Qkidney" = Qkidney, "QL_hepatic_artery" = QL_hepatic_artery, "Qrest" = Qrest, 
                  "Qgonads" = Qgonads, "Qstomach" = Qstomach, "Qintestine" = Qintestine,
                  "Qbrain" = Qbrain, "Qlung" = Qlung,  "Qheart" = Qheart,
                  "Qspleen" = Qspleen,
@@ -175,21 +175,23 @@ create.params  <- function(user_input){
                  "Vliverb" = Vliverb,
                  
                  "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
+                 "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
+                 "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
+                 "kabs" = kabs,  "k0" = k0,
                  
                  "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
                  "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
                  "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
                  "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
                  
-                 "Vmax_baso" = Vmax_baso*CF[10], "Vmax_apical" = Vmax_apical*CF[11],
-                 'kdif' = kdif*CF[12], 
-                 "kbile" = kbile*CF[13], "kurine" = kurine*CF[14], "kefflux" = kefflux*CF[15],
-                 "kabs" = kabs*CF[16], "kunabs" = kunabs*CF[17], "GE" = GE*CF[18], "k0" = k0*CF[19],
-                 "Free" = Free*CF[20],  "Pkidney" = Pkidney*CF[21],
+                 
+                 'kdif' = kdif*CF[10],"kefflux" = kefflux*CF[11],
+                 "Free" = Free*CF[12], "kabs" = kabs*CF[13],  "k0" = k0*CF[14],
                  
                  
                  "admin.type" = admin.type,
                  "admin.time" = admin.time, "admin.dose" = admin.dose))
+    
     
   })
 }
@@ -200,7 +202,7 @@ create.params  <- function(user_input){
 
 create.inits <- function(parameters){
   with( as.list(parameters),{
-    "Arest" <- 0; "Adif" <- 0; "A_baso" <- 0; "Akidney" <- 0;
+    "Arest" <- 0; "Adif" <- 0; "A_baso" <- 0; "Akidney_blood" <- 0;
     "ACl" <- 0; "Aefflux" <- 0;
     "A_apical" <- 0; "APTC" <- 0; "Afil" <- 0;
     "Aurine" <- 0; "Astomach_lumen" <- 0;
@@ -211,7 +213,7 @@ create.inits <- function(parameters){
     
     return(c("Arest" = Arest, "Agonads" = Agonads, "Aspleen" = Aspleen, "Aheart" = Aheart,
              "Alung" = Alung, "Abrain" = Abrain, "Adif" = Adif, "A_baso" = A_baso, 
-             "Akidney" = Akidney,
+             "Akidney_blood" = Akidney_blood,
              "ACl" = ACl, "Aefflux" = Aefflux,
              "A_apical" = A_apical, "APTC" = APTC, "Afil" = Afil,
              "Aurine" = Aurine, "Astomach_lumen" =Astomach_lumen,
@@ -260,10 +262,11 @@ custom.func <- function(){
 
 ode.func <- function(time, inits, params, custom.func){
   with(as.list(c(inits,params)),{
+    
     Crest = Arest/Vrest #concentration in rest of body (mg/L)
     CVrest = Crest/Prest	#concentration in venous blood leaving the rest of the body (mg/L)
-    Ckidney = Akidney/Vkidney	#concentration in kidney blodd (mg/L) 
-    CVkidney = Ckidney /Pkidney	#concentration in venous blood leaving kidney (mg/L)
+    Ckidney_blood = Akidney_blood/Vkidneyb	#concentration in kidney blodd (mg/L) 
+    CVkidney = Ckidney_blood #/Pkidney	#concentration in venous blood leaving kidney (mg/L)
     CPTC = APTC/VPTC	#concentration in PTC (mg/L)
     Cfil = Afil/Vfil	#concentration in filtrate (mg/L)
     Cliver = Aliver/Vliver	#concentration in the liver (mg/L)
@@ -298,9 +301,9 @@ ode.func <- function(time, inits, params, custom.func){
     
     #Kidney 
     #Kidney Blood (Kb)
-    dAdif <- kdif*(Cven_free - CPTC)	#rate of diffusion from into the PTC (mg/hr)
-    dA_baso <- (Vmax_baso*Cven_free)/(Km_baso + Cven_free)	
-    dAkidney <- QK*(Cart-CVkidney)*Free  #rate of change in kidney blood (mg/h).
+    dAdif <- kdif*(Ckidney_blood - CPTC)	#rate of diffusion from into the PTC (mg/hr)
+    dA_baso <- (Vmax_baso*Ckidney_blood)/(Km_baso + Ckidney_blood)	
+    dAkidney_blood <- Qkidney*(Cart-CVkidney)*Free - Cart*GFR*Free- dAdif - dA_baso  #rate of change in kidney blood (mg/h).
     dACl <- Cven*GFR*Free	#rate of clearance via glormerular filtration (mg/h)
     
     #Proximal Tubule Cells (PTC)
@@ -334,15 +337,15 @@ ode.func <- function(time, inits, params, custom.func){
     
     #Venous Plasma compartment
     dAven_free = Qrest*CVrest*Free + Qgonads*CVgonads*Free +  Qheart*CVheart*Free + Qbrain*CVbrain*Free +
-      (QK*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
-      (Qlung*Cven*Free) + dAefflux- dA_baso - dAdif  #rate of change in the plasma (mg/h) 
+      (Qkidney*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
+      (Qlung*Cven*Free)+ dAefflux #rate of change in the plasma (mg/h) 
     
     #Arterial Plasma compartment
-    dAart_free =  Qlung*CVlung*Free - Cart*GFR*Free- Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
-                                                                  Qbrain+QK+Qstomach+Qintestine+QL_hepatic_artery)
+    dAart_free =  Qlung*CVlung*Free - Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
+                                                   Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)
     
     #Mass Balance Check
-    Atissue = Aart_free +Aven_free+ Arest + Akidney + Afil + APTC + Aliver + 
+    Atissue = Aart_free +Aven_free+ Arest + Akidney_blood + Afil + APTC + Aliver + 
       Astomach + Astomach_lumen + Aintestine+ Aintestine_lumen+
       Agonads + Aspleen + Aheart + Alung + Abrain #sum of mass in all compartments (mg)
     Aloss = Aurine + Afeces #sum of mass lost through urinary and fecal excretion (mg)
@@ -350,7 +353,7 @@ ode.func <- function(time, inits, params, custom.func){
     
     list(c("dArest" = dArest, "dAgonads" = dAgonads, "dAspleen" = dAspleen, "dAheart" = dAheart,
            "dAlung" = dAlung, "dAbrain" = dAbrain, 
-           "dAdif" = dAdif, "dA_baso" = dA_baso, "dAkidney" = dAkidney,
+           "dAdif" = dAdif, "dA_baso" = dA_baso, "dAkidney_blood" = dAkidney_blood,
            "dACl" = dACl, "dAefflux" = dAefflux,
            "dA_apical" = dA_apical, "dAPTC" = dAPTC, "dAfil" = dAfil,
            "dAurine" = dAurine, "dAstomach_lumen" =dAstomach_lumen,
@@ -364,12 +367,13 @@ ode.func <- function(time, inits, params, custom.func){
          "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
          "Cplasma" = Aven_free/VPlas/Free,
-         "Cliver" = (Aliver + CVliver*Vliverb)/Vliver,
-         "Ckidneys" = (APTC+Akidney+CVkidney*Vkidneyb)/Vkidney,
-         "Cbrain" = (Abrain + CVbrain*Vbrainb)/Vbrain)
+         "Cliver" = Aliver /Vliver,
+         "Ckidneys" = APTC/Vkidney,
+         "Cbrain" = Abrain /Vbrain)
     
   })
 }
+
 
 #======================
 #3. Objective function  
@@ -493,11 +497,11 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
   
   experimental_time_points_brain<- tissue_male$Time[tissue_indices_male[2]:dim(tissue_male)[1]]
-  concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
+  concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
   
   observed <- list("Cliver" = tissue_male[tissue_male$Tissue == "Liver","Mass"],
                    "Ckidneys" = tissue_male[tissue_male$Tissue == "Kidneys","Mass"],
-                   "Ckidneys" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
+                   "Cbrain" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
   
   predicted <- list("Cliver" = concentration_liver, "Ckidneys" = concentration_kidneys,
                     "Cbrain" = concentration_brain)
@@ -518,7 +522,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   # concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
   # 
   # experimental_time_points_brain<- tissue_female$Time[tissue_indices_female[2]:dim(tissue_female)[1]]
-  # concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
+  # concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
   # 
   # observed <- list("Cliver" = tissue_female[tissue_female$Tissue == "Liver","Mass"],
   #                  "Ckidneys" = tissue_female[tissue_female$Tissue == "Kidneys","Mass"],
@@ -538,7 +542,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #   + discrepancy_tissues_female
   return(total_discrepancy)
 }
-
+  
   # SODI function the returns the SODI index described in Tsiros et al.2024
   # predictions: list of vectors containing the predicted data
   # names of the compartments
@@ -602,37 +606,14 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #==============================
   # Function for decoding the GA output. Simply, we take the floor of the continuous number
   decode_ga_real <- function(real_num){ 
-    # Partition coefficient grouping
-    CF1<- floor(real_num[1])
-    CF2 <- floor(real_num[2])
-    CF3 <- floor(real_num[3])
-    CF4 <- floor(real_num[4])
-    CF5 <- floor(real_num[5])
-    CF6 <- floor(real_num[6])
-    CF7 <- floor(real_num[7])
-    CF8 <- floor(real_num[8])
-    CF9 <- floor(real_num[9])
-    CF10 <- floor(real_num[10])
-    CF11 <- floor(real_num[11])
-    CF12 <- floor(real_num[12])
-    CF13 <- floor(real_num[13])
-    CF14 <- floor(real_num[14])
-    CF15 <- floor(real_num[15])
-    CF16 <- floor(real_num[16])
-    CF17 <- floor(real_num[17])
-    CF18 <- floor(real_num[18])
-    CF19 <- floor(real_num[19])
-    CF20 <- floor(real_num[20])
-    CF21 <- floor(real_num[21])
+    CF <- rep(NA, length(real_num))
+    # Grouping of correctin factors
+    for (i in 1:length(CF)){
+      CF[i] <-  floor(real_num[i])
+    }
     
-    out <- structure(c(CF1,CF2,CF3,CF4,CF5,CF6,CF7,CF8, CF9,CF10,CF11,CF12,CF13,
-                       CF14,CF15,CF16, CF17, CF18, CF19, CF20, CF21),
-                     names = c("CF1","CF2","CF3","CF4","CF5","CF6","CF7","CF8", "CF9",
-                               "CF10","CF11","CF12","CF13",
-                               "CF14","CF15","CF16", "CF17", "CF18", "CF19", "CF20", "CF21"))
-    return(out)
+    return(CF)
   }
-  
   #===============
   # Load data  
   #===============
@@ -679,8 +660,8 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
     # Run the optimization algorithmm to estimate the parameter values
     optimizer <- nloptr::nloptr( x0= fit,
                                  eval_f = obj.func,
-                                 lb	= rep(log(1e-4), N_pars),
-                                 ub = rep(log(1000), N_pars),
+                                 lb	= rep(log(0.1), N_pars),
+                                 ub = rep(log(10), N_pars),
                                  opts = opts,
                                  group = group,
                                  serum_male = df_serum_male,

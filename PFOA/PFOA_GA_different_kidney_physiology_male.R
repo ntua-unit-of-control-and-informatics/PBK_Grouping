@@ -19,7 +19,7 @@ ga_fitness <- function(chromosome)
       for (i in 1:N_pars){
         parameter_values[i+1] <- exp(fitted_pars[i])
       }
-       
+      
       #Pass grouping information from GA to the correction factors
       for (i in 1:length(group)){
         CF[i] <- parameter_values[group[i]]
@@ -32,7 +32,7 @@ ga_fitness <- function(chromosome)
       #Cardiac Output and Bloodflow (as fraction of cardiac output)
       QCC = 14.0 #cardiac output in L/h/kg^0.75; Brown 1997		 
       QL_hepatic_arteryC = 0.021 #fraction blood flow to liver; Brown 1997	
-      QKC = 0.141 #fraction blood flow to kidney; Brown 1997.
+      QkidneyC = 0.141 #fraction blood flow to kidney; Brown 1997.
       QgonadsC = 0.500/53  	#fraction blood flow to gonads; from doi:10.1124/dmd.107.015644
       QintestineC = 0.451/2.58	#fraction blood flow to intestine; from doi:10.1007/bf02353860
       QspleenC = 0.63/74	#fraction blood flow to spleen; davies 1993
@@ -105,7 +105,7 @@ ga_fitness <- function(chromosome)
       #Cardiac output and blood flows
       QC <- QCC*(BW^0.75)*(1-Htc)	#cardiac output in L/h; adjusted for plasma
       Qlung <- QC
-      QK <- (QKC*QC)	#plasma flow to kidney (L/h)
+      Qkidney <- (QkidneyC*QC)	#plasma flow to kidney (L/h)
       QL_hepatic_artery <- (QL_hepatic_arteryC*QC)	#plasma flow to liver (L/h)
       Qspleen <- (QspleenC*QC)	#plasma flow to spleen (L/h)
       Qgonads <- (QgonadsC*QC)	#plasma flow to gonads (L/h)
@@ -113,9 +113,9 @@ ga_fitness <- function(chromosome)
       Qstomach <- (QstomachC*QC)	#plasma flow to stomach (L/h)
       Qheart <- (QheartC*QC)	#plasma flow to heart (L/h)
       Qbrain <- (QbrainC*QC)	#plasma flow to liver (L/h)
-      Qrest <- QC - QK - QL_hepatic_artery - Qspleen - Qgonads - Qintestine	- Qstomach -
+      Qrest <- QC - Qkidney - QL_hepatic_artery - Qspleen - Qgonads - Qintestine	- Qstomach -
                Qheart - Qbrain#plasma flow to rest of body (L/h)
-      QBal <- QC - (QK + QL_hepatic_artery + Qspleen + Qgonads + Qintestine	+ Qstomach +
+      QBal <- QC - (Qkidney + QL_hepatic_artery + Qspleen + Qgonads + Qintestine	+ Qstomach +
                       Qheart + Qbrain+Qrest) #Balance check of blood flows; should equal zero
       
       #Tissue Volumes
@@ -167,31 +167,31 @@ ga_fitness <- function(chromosome)
       GE = GEC/BW^0.25	#gastric emptying time (/h)
       k0 = k0C/BW^0.25 	#rate of uptake from the stomach into the liver (/h)
       
-      return(list( "QC" = QC, "QK" = QK, "QL_hepatic_artery" = QL_hepatic_artery, "Qrest" = Qrest, 
+      return(list( "QC" = QC, "Qkidney" = Qkidney, "QL_hepatic_artery" = QL_hepatic_artery, "Qrest" = Qrest, 
                    "Qgonads" = Qgonads, "Qstomach" = Qstomach, "Qintestine" = Qintestine,
                    "Qbrain" = Qbrain, "Qlung" = Qlung,  "Qheart" = Qheart,
                    "Qspleen" = Qspleen,
                    
                    "VPlas" = VPlas, "Vart_plasma" = Vart_plasma, "Vven_plasma" = Vven_plasma,
-                   "Vkidneyb" = Vkidneyb, "Vfil" = Vfil, "Vliver" = Vliver, "Vrest" = Vrest, 
+                    "Vfil" = Vfil, "Vliver" = Vliver, "Vrest" = Vrest, 
                    "Vgonads" = Vgonads, "Vstomach" = Vstomach, "Vintestine" = Vintestine,
                    "Vbrain" = Vbrain, "Vlung" = Vlung,  "Vheart" = Vheart,
-                   "Vspleen" = Vspleen, "Vkidney" = Vkidney,"Vbrainb" = Vbrainb, 
+                   "Vspleen" = Vspleen, "Vkidney" = Vkidney,"Vkidneyb" = Vkidneyb,"Vbrainb" = Vbrainb, 
                    "Vliverb" = Vliverb,
                    
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
+                   "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
+                   "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
+                   "kabs" = kabs,  "k0" = k0,
                    
                    "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
                    "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
                    "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
                    "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
-                   "Pkidney" = Pkidney*CF[10],
+                   "Pkidney" = Pkidney * CF[10], 
                    
-                   "Vmax_baso" = Vmax_baso*CF[11], "Vmax_apical" = Vmax_apical,
-                   'kdif' = kdif*CF[12], 
-                   "kbile" = kbile*CF[13], "kurine" = kurine, "kefflux" = kefflux*CF[14],
-                   "kabs" = kabs*CF[15], "kunabs" = kunabs, "GE" = GE, "k0" = k0*CF[16],
-                   "Free" = Free*CF[17], 
+                   'kdif' = kdif*CF[11],"kefflux" = kefflux*CF[12],
+                   "Free" = Free*CF[13], 
                    
                   
                    "admin.type" = admin.type,
@@ -304,10 +304,10 @@ ga_fitness <- function(chromosome)
       
       #Kidney 
       #Kidney Blood (Kb)
-      dAdif <- kdif*(Cven_free - CPTC)	#rate of diffusion from into the PTC (mg/hr)
-      dA_baso <- (Vmax_baso*Cven_free)/(Km_baso + Cven_free)	
-      dAkidney <- QK*(Cart-CVkidney)*Free  #rate of change in kidney blood (mg/h).
-      dACl <- Cven*GFR*Free	#rate of clearance via glormerular filtration (mg/h)
+      dAdif <- kdif*(Cart_free - CPTC)	#rate of diffusion from into the PTC (mg/hr)
+      dA_baso <- (Vmax_baso*Cart_free)/(Km_baso + Cart_free)	
+      dAkidney <- Qkidney*(Cart-CVkidney)*Free  #rate of change in kidney blood (mg/h).
+      dACl <- Cart*GFR*Free	#rate of clearance via glormerular filtration (mg/h)
      
       #Proximal Tubule Cells (PTC)
       dAefflux <- kefflux*APTC
@@ -340,12 +340,12 @@ ga_fitness <- function(chromosome)
   
       #Venous Plasma compartment
       dAven_free = Qrest*CVrest*Free + Qgonads*CVgonads*Free +  Qheart*CVheart*Free + Qbrain*CVbrain*Free +
-                 (QK*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
+                 (Qkidney*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
                (Qlung*Cven*Free) + dAefflux- dA_baso - dAdif  #rate of change in the plasma (mg/h) 
       
       #Arterial Plasma compartment
       dAart_free =  Qlung*CVlung*Free - Cart*GFR*Free- Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
-                                                      Qbrain+QK+Qstomach+Qintestine+QL_hepatic_artery)
+                            Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery) + dAefflux- dA_baso - dAdif 
       
       #Mass Balance Check
       Atissue = Aart_free +Aven_free+ Arest + Akidney + Afil + APTC + Aliver + 
@@ -370,9 +370,9 @@ ga_fitness <- function(chromosome)
            "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
            "Cart" = Cart, 
            "Cplasma" = Aven_free/VPlas/Free,
-           "Cliver" = (Aliver + CVliver*Vliverb)/Vliver,
-           "Ckidneys" = (APTC+Akidney+CVkidney*Vkidneyb)/Vkidney,
-           "Cbrain" = (Abrain + CVbrain*Vbrainb)/Vbrain)
+           "Cliver" = (Aliver+ CVliver*Vliverb )/Vliver,
+           "Ckidneys" = (APTC+Akidney+ CVkidney*Vkidneyb)/Vkidney,
+           "Cbrain" = (Abrain+ CVkidney*Vkidneyb) /Vbrain)
       
     })
   }
@@ -499,11 +499,11 @@ ga_fitness <- function(chromosome)
     concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
     
     experimental_time_points_brain<- tissue_male$Time[tissue_indices_male[2]:dim(tissue_male)[1]]
-    concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
+    concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
     
     observed <- list("Cliver" = tissue_male[tissue_male$Tissue == "Liver","Mass"],
                      "Ckidneys" = tissue_male[tissue_male$Tissue == "Kidneys","Mass"],
-                     "Ckidneys" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
+                     "Cbrain" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
             
     predicted <- list("Cliver" = concentration_liver, "Ckidneys" = concentration_kidneys,
                       "Cbrain" = concentration_brain)
@@ -524,7 +524,7 @@ ga_fitness <- function(chromosome)
     # concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
     # 
     # experimental_time_points_brain<- tissue_female$Time[tissue_indices_female[2]:dim(tissue_female)[1]]
-    # concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
+    # concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
     # 
     # observed <- list("Cliver" = tissue_female[tissue_female$Tissue == "Liver","Mass"],
     #                  "Ckidneys" = tissue_female[tissue_female$Tissue == "Kidneys","Mass"],
@@ -608,35 +608,13 @@ ga_fitness <- function(chromosome)
   #==============================
   # Function for decoding the GA output. Simply, we take the floor of the continuous number
   decode_ga_real <- function(real_num){ 
-    # Partition coefficient grouping
-    CF1<- floor(real_num[1])
-    CF2 <- floor(real_num[2])
-    CF3 <- floor(real_num[3])
-    CF4 <- floor(real_num[4])
-    CF5 <- floor(real_num[5])
-    CF6 <- floor(real_num[6])
-    CF7 <- floor(real_num[7])
-    CF8 <- floor(real_num[8])
-    CF9 <- floor(real_num[9])
-    CF10 <- floor(real_num[10])
-    CF11 <- floor(real_num[11])
-    CF12 <- floor(real_num[12])
-    CF13 <- floor(real_num[13])
-    CF14 <- floor(real_num[14])
-    CF15 <- floor(real_num[15])
-    CF16 <- floor(real_num[16])
-    CF17 <- floor(real_num[17])
-    CF18 <- floor(real_num[18])
-    CF19 <- floor(real_num[19])
-    CF20 <- floor(real_num[20])
-    CF21 <- floor(real_num[21])
+    CF <- rep(NA, length(real_num))
+    # Grouping of correctin factors
+    for (i in 1:length(CF)){
+      CF[i] <-  floor(real_num[i])
+    }
     
-    out <- structure(c(CF1,CF2,CF3,CF4,CF5,CF6,CF7,CF8, CF9,CF10,CF11,CF12,CF13,
-                       CF14,CF15,CF16, CF17, CF18, CF19, CF20, CF21),
-                     names = c("CF1","CF2","CF3","CF4","CF5","CF6","CF7","CF8", "CF9",
-                               "CF10","CF11","CF12","CF13",
-                               "CF14","CF15","CF16", "CF17", "CF18", "CF19", "CF20", "CF21"))
-    return(out)
+    return(CF)
   }
   
   #===============
@@ -674,7 +652,7 @@ ga_fitness <- function(chromosome)
   # Create initial conditions (zero initialisation)
   inits <- create.inits(list(NULL))
   N_pars <- 5 # Number of parameters to be fitted
-  fit <- log(rep(1,N_pars))
+  fitted_pars <- log(rep(1,N_pars))
   try(
     # Run the optimization algorithmm to estimate the parameter values
     optimizer <- nloptr::nloptr( x0= fit,
@@ -741,11 +719,14 @@ ga_fitness <- function(chromosome)
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 17 #number of parameters to be included in the grouping process
+N_genes <- 12 #number of parameters to be included in the grouping process
+#N_part <- 10 #number of partition coefficients
 N_pars <- 5 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
-                     lower = rep(1,N_genes), upper = rep((N_pars + 1 + 0.999999),N_genes),  
+                     #lower = c(rep(1,N_part), rep(5,(N_genes-N_part))),
+                    # upper = c(rep(4.99999,N_part),rep(7.99999,(N_genes-N_part)) ), 
+                    lower = rep(1,N_genes), upper = rep((N_pars + 1 + 0.999999),N_genes),  
                      population = "gareal_Population",
                      selection = "gareal_lsSelection",
                      crossover = "gareal_laCrossover", 

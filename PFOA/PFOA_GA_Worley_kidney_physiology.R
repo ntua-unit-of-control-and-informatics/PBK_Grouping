@@ -180,21 +180,23 @@ ga_fitness <- function(chromosome)
                    "Vliverb" = Vliverb,
                    
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
+                   "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
+                   "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
+                   "kabs" = kabs,  "k0" = k0,
                    
                    "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
                    "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
                    "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
                    "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
-                   
-                   "Vmax_baso" = Vmax_baso*CF[10], "Vmax_apical" = Vmax_apical*CF[11],
-                   'kdif' = kdif*CF[12], 
-                   "kbile" = kbile*CF[13], "kurine" = kurine*CF[14], "kefflux" = kefflux*CF[15],
-                   "kabs" = kabs*CF[16], "kunabs" = kunabs*CF[17], "GE" = GE*CF[18], "k0" = k0*CF[19],
-                   "Free" = Free*CF[20],
-                   
                   
+                   
+                  'kdif' = kdif*CF[10],"kefflux" = kefflux*CF[11],
+                  "Free" = Free*CF[12], "kabs" = kabs*CF[13],  "k0" = k0*CF[14],
+                   
+                   
                    "admin.type" = admin.type,
                    "admin.time" = admin.time, "admin.dose" = admin.dose))
+      
       
     })
   }
@@ -369,10 +371,10 @@ ga_fitness <- function(chromosome)
            "CVkidney" = CVkidney, "CPTC" = CPTC,
            "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
            "Cart" = Cart, 
-           "Cplasma" = (Aart_free +Aven_free)/VPlas/Free,
-           "Cliver" = (Aliver + CVliver*Vliverb)/Vliver,
-           "Ckidneys" = (APTC+Akidney_blood)/(Vkidneyb +VPTC ),
-           "Cbrain" = (Abrain + CVbrain*Vbrainb)/Vbrain)
+           "Cplasma" = Aven_free/VPlas/Free,
+           "Cliver" = Aliver /Vliver,
+           "Ckidneys" = APTC/Vkidney,
+           "Cbrain" = Abrain /Vbrain)
       
     })
   }
@@ -380,49 +382,48 @@ ga_fitness <- function(chromosome)
   #======================
   #3. Objective function  
   #======================
-
+  
   obj.func <- function(fitted_pars, group, serum_male, serum_indices_male, 
                        tissue_male,tissue_indices_male, serum_female, serum_indices_female, 
                        tissue_female,tissue_indices_female, inits, N_pars){
-    
     #Subroutine for returning the goodness-of-fit on the serum data, male or female
     solve_odes <- function(serum, admin.type, admin.dose, indices, 
                            BW, sex, fitted_pars, group, N_pars ){
-    # Calculate PBK parameters
-    parameters <- create.params( list("BW" = BW  , sex = sex, 
-                                      "admin.type" = admin.type,
-                                      "admin.time" = 0.01, "admin.dose" = admin.dose,
-                                      "fitted_pars" = fitted_pars, "group" = group,
-                                       "N_pars" = N_pars))
-    events <- create.events(parameters)
-    # Structure the in silico time vector in a way that the sampling time points are included
-    if(sex == "F"){
-      sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
-                       seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
-                       seq(0.3,  0.9, 0.1), seq(1,23,1),
-                       seq(24,196 , 4))
-    }else if(sex == "M"){
-      sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
-                       seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
-                       seq(0.3,  0.9, 0.1), seq(1,23,1),
-                       seq(24, 192, 4), seq(196, 516,16), 528, seq(540, 860,16),
-                       864, seq(880, 1200,32))
-    }else(
-      stop(" Provide a valid sex. Chose between 'F' or 'M'")
-    )
-    solution <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
-                                        y = inits, parms = parameters, events = events,
-                                        method="lsodes",rtol = 1e-4, atol = 1e-4))
-    
-    concentrations <- data.frame("time" = solution$time, "Cplasma" = solution$Cplasma)
-    experimental_time_points <- serum$Time[indices[1]:indices[2]]
-    concentrations <- concentrations[concentrations$time %in% experimental_time_points, "Cplasma"]
-    
-    observed <- list("Cplasma" = serum$Mass[indices[1]:indices[2]])
-    predicted <- list("Cplasma" = concentrations)
-    #Calculate goodness-of-fit
-    discrepancy <- SODI(observed, predicted)
-    return(list("discrepancy" = discrepancy,"solution" = solution))
+      # Calculate PBK parameters
+      parameters <- create.params( list("BW" = BW  , sex = sex, 
+                                        "admin.type" = admin.type,
+                                        "admin.time" = 0.01, "admin.dose" = admin.dose,
+                                        "fitted_pars" = fitted_pars, "group" = group,
+                                        "N_pars" = N_pars))
+      events <- create.events(parameters)
+      # Structure the in silico time vector in a way that the sampling time points are included
+      if(sex == "F"){
+        sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
+                         seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
+                         seq(0.3,  0.9, 0.1), seq(1,23,1),
+                         seq(24,196 , 4))
+      }else if(sex == "M"){
+        sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
+                         seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
+                         seq(0.3,  0.9, 0.1), seq(1,23,1),
+                         seq(24, 192, 4), seq(196, 516,16), 528, seq(540, 860,16),
+                         864, seq(880, 1200,32))
+      }else(
+        stop(" Provide a valid sex. Chose between 'F' or 'M'")
+      )
+      solution <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
+                                          y = inits, parms = parameters, events = events,
+                                          method="lsodes",rtol = 1e-4, atol = 1e-4))
+      
+      concentrations <- data.frame("time" = solution$time, "Cplasma" = solution$Cplasma)
+      experimental_time_points <- serum$Time[indices[1]:indices[2]]
+      concentrations <- concentrations[concentrations$time %in% experimental_time_points, "Cplasma"]
+      
+      observed <- list("Cplasma" = serum$Mass[indices[1]:indices[2]])
+      predicted <- list("Cplasma" = concentrations)
+      #Calculate goodness-of-fit
+      discrepancy <- SODI(observed, predicted)
+      return(list("discrepancy" = discrepancy,"solution" = solution))
     }
     # Weight from https://animal.ncku.edu.tw/p/412-1130-16363.php?Lang=en based on SD rats 8 weeks old
     BW_male <- 0.3#kg
@@ -431,19 +432,19 @@ ga_fitness <- function(chromosome)
     # Goodness-of-fit on male serum
     # IV, 6mg/kg
     discrepancy_iv_6 <- solve_odes(serum = serum_male, admin.type = unique(serum_male$Type)[1],
-                                    admin.dose = BW_male*unique(serum_male$Dose)[1], 
+                                   admin.dose = BW_male*unique(serum_male$Dose)[1], 
                                    indices = c(1,serum_indices_male[1]-1),
                                    BW = BW_male, sex = "M", fitted_pars = fitted_pars,
                                    group = group, N_pars = N_pars)$discrepancy
     # Oral, 6mg/kg
     discrepancy_oral_6 <- solve_odes(serum = serum_male,admin.type = unique(serum_male$Type)[2],
-                                    admin.dose = BW_male*unique(serum_male$Dose)[1], 
-                                    indices = c(serum_indices_male[1],serum_indices_male[2]-1),
-                                                BW = BW_male, sex = "M", fitted_pars = fitted_pars,
-                                                group = group, N_pars = N_pars)$discrepancy
+                                     admin.dose = BW_male*unique(serum_male$Dose)[1], 
+                                     indices = c(serum_indices_male[1],serum_indices_male[2]-1),
+                                     BW = BW_male, sex = "M", fitted_pars = fitted_pars,
+                                     group = group, N_pars = N_pars)$discrepancy
     # Oral, 12mg/kg
     solution_oral_12 <- solve_odes(serum = serum_male,admin.type = unique(serum_male$Type)[2],
-                                      admin.dose = BW_male*unique(serum_male$Dose)[2], 
+                                   admin.dose = BW_male*unique(serum_male$Dose)[2], 
                                    indices = c(serum_indices_male[2],serum_indices_male[3]-1),
                                    BW = BW_male, sex = "M", fitted_pars = fitted_pars,
                                    group = group, N_pars = N_pars)
@@ -451,41 +452,41 @@ ga_fitness <- function(chromosome)
     
     # Oral, 48mg/kg
     discrepancy_oral_48 <- solve_odes(serum = serum_male,admin.type = unique(serum_male$Type)[2],
-                                       admin.dose = BW_male*unique(serum_male$Dose)[3], 
+                                      admin.dose = BW_male*unique(serum_male$Dose)[3], 
                                       indices = c(serum_indices_male[3],dim(serum_male)[1]),
                                       BW = BW_male, sex = "M", fitted_pars = fitted_pars,
                                       group = group, N_pars = N_pars)$discrepancy
     
-    #######################
-    # Goodness-of-fit on female serum
-    # IV, 40mg/kg
-    discrepancy_iv_40 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[1],
-                                   admin.dose = BW_female*unique(serum_female$Dose)[1], 
-                                   indices = c(1,serum_indices_female[1]-1),
-                                   BW = BW_female, sex = "F", fitted_pars = fitted_pars,
-                                   group = group, N_pars = N_pars)$discrepancy
-    # Oral, 40mg/kg
-    discrepancy_oral_40 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
-                                     admin.dose = BW_female*unique(serum_female$Dose)[1], 
-                                     indices = c(serum_indices_female[1],serum_indices_female[2]-1),
-                                     BW = BW_female, sex = "F", fitted_pars = fitted_pars,
-                                     group = group, N_pars = N_pars)$discrepancy
-    # Oral, 80mg/kg
-    solution_oral_80 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
-                                   admin.dose = BW_female*unique(serum_female$Dose)[2], 
-                                   indices = c(serum_indices_female[2],serum_indices_female[3]-1),
-                                   BW = BW_female, sex = "F", fitted_pars = fitted_pars,
-                                   group = group, N_pars = N_pars)
-    discrepancy_oral_80 <- solution_oral_80$discrepancy
-    
-    
-    # Oral, 320mg/kg
-    discrepancy_oral_320 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
-                                      admin.dose = BW_female*unique(serum_female$Dose)[3], 
-                                      indices = c(serum_indices_female[3],dim(serum_female)[1]),
-                                      BW = BW_female, sex = "F", fitted_pars = fitted_pars,
-                                      group = group, N_pars = N_pars)$discrepancy
-    
+    # #######################
+    # # Goodness-of-fit on female serum
+    # # IV, 40mg/kg
+    # discrepancy_iv_40 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[1],
+    #                                admin.dose = BW_female*unique(serum_female$Dose)[1], 
+    #                                indices = c(1,serum_indices_female[1]-1),
+    #                                BW = BW_female, sex = "F", fitted_pars = fitted_pars,
+    #                                group = group, N_pars = N_pars)$discrepancy
+    # # Oral, 40mg/kg
+    # discrepancy_oral_40 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
+    #                                  admin.dose = BW_female*unique(serum_female$Dose)[1], 
+    #                                  indices = c(serum_indices_female[1],serum_indices_female[2]-1),
+    #                                  BW = BW_female, sex = "F", fitted_pars = fitted_pars,
+    #                                  group = group, N_pars = N_pars)$discrepancy
+    # # Oral, 80mg/kg
+    # solution_oral_80 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
+    #                                admin.dose = BW_female*unique(serum_female$Dose)[2], 
+    #                                indices = c(serum_indices_female[2],serum_indices_female[3]-1),
+    #                                BW = BW_female, sex = "F", fitted_pars = fitted_pars,
+    #                                group = group, N_pars = N_pars)
+    # discrepancy_oral_80 <- solution_oral_80$discrepancy
+    # 
+    # 
+    # # Oral, 320mg/kg
+    # discrepancy_oral_320 <- solve_odes(serum = serum_female, admin.type = unique(serum_female$Type)[2],
+    #                                   admin.dose = BW_female*unique(serum_female$Dose)[3], 
+    #                                   indices = c(serum_indices_female[3],dim(serum_female)[1]),
+    #                                   BW = BW_female, sex = "F", fitted_pars = fitted_pars,
+    #                                   group = group, N_pars = N_pars)$discrepancy
+    # 
     #######################
     # Estimate the goodness-of-fit on the male tissues
     concentrations <- data.frame("time" = solution_oral_12$solution$time, 
@@ -500,52 +501,53 @@ ga_fitness <- function(chromosome)
     concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
     
     experimental_time_points_brain<- tissue_male$Time[tissue_indices_male[2]:dim(tissue_male)[1]]
-    concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
+    concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
     
     observed <- list("Cliver" = tissue_male[tissue_male$Tissue == "Liver","Mass"],
                      "Ckidneys" = tissue_male[tissue_male$Tissue == "Kidneys","Mass"],
-                     "Ckidneys" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
-            
+                     "Cbrain" = tissue_male[tissue_male$Tissue == "Brain","Mass"])
+    
     predicted <- list("Cliver" = concentration_liver, "Ckidneys" = concentration_kidneys,
                       "Cbrain" = concentration_brain)
     #Calculate goodness-of-fit
     discrepancy_tissues_male <- SODI(observed, predicted)
     
     #######################
-    # Estimate the goodness-of-fit on the female tissues
-    concentrations <- data.frame("time" = solution_oral_12$solution$time, 
-                                 "Ckidneys" = solution_oral_12$solution$Ckidneys,
-                                 "Cliver" =solution_oral_12$solution$Cliver,
-                                 "Cbrain" = solution_oral_12$solution$Cbrain)
-    
-    experimental_time_points_liver <- tissue_female$Time[1:(tissue_indices_female[1]-1)]
-    concentration_liver <- concentrations[concentrations$time %in% experimental_time_points_liver, "Cliver"]
-    
-    experimental_time_points_kidneys <- tissue_female$Time[tissue_indices_female[1]:(tissue_indices_female[2]-1)]
-    concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
-    
-    experimental_time_points_brain<- tissue_female$Time[tissue_indices_female[2]:dim(tissue_female)[1]]
-    concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Ckidneys"]
-    
-    observed <- list("Cliver" = tissue_female[tissue_female$Tissue == "Liver","Mass"],
-                     "Ckidneys" = tissue_female[tissue_female$Tissue == "Kidneys","Mass"],
-                     "Ckidneys" = tissue_female[tissue_female$Tissue == "Brain","Mass"])
-    
-    predicted <- list("Cliver" = concentration_liver, "Ckidneys" = concentration_kidneys,
-                      "Cbrain" = concentration_brain)
-    #Calculate goodness-of-fit
-    discrepancy_tissues_female <- SODI(observed, predicted)
-    
+    # # Estimate the goodness-of-fit on the female tissues
+    # concentrations <- data.frame("time" = solution_oral_12$solution$time, 
+    #                              "Ckidneys" = solution_oral_12$solution$Ckidneys,
+    #                              "Cliver" =solution_oral_12$solution$Cliver,
+    #                              "Cbrain" = solution_oral_12$solution$Cbrain)
+    # 
+    # experimental_time_points_liver <- tissue_female$Time[1:(tissue_indices_female[1]-1)]
+    # concentration_liver <- concentrations[concentrations$time %in% experimental_time_points_liver, "Cliver"]
+    # 
+    # experimental_time_points_kidneys <- tissue_female$Time[tissue_indices_female[1]:(tissue_indices_female[2]-1)]
+    # concentration_kidneys <- concentrations[concentrations$time %in% experimental_time_points_kidneys, "Ckidneys"]
+    # 
+    # experimental_time_points_brain<- tissue_female$Time[tissue_indices_female[2]:dim(tissue_female)[1]]
+    # concentration_brain <- concentrations[concentrations$time %in% experimental_time_points_brain, "Cbrain"]
+    # 
+    # observed <- list("Cliver" = tissue_female[tissue_female$Tissue == "Liver","Mass"],
+    #                  "Ckidneys" = tissue_female[tissue_female$Tissue == "Kidneys","Mass"],
+    #                  "Ckidneys" = tissue_female[tissue_female$Tissue == "Brain","Mass"])
+    # 
+    # predicted <- list("Cliver" = concentration_liver, "Ckidneys" = concentration_kidneys,
+    #                   "Cbrain" = concentration_brain)
+    # #Calculate goodness-of-fit
+    # discrepancy_tissues_female <- SODI(observed, predicted)
+    # 
     
     # Calculate total discrepancy
     total_discrepancy <- discrepancy_iv_6 + discrepancy_oral_6 + discrepancy_oral_12 + 
-                         discrepancy_oral_48+discrepancy_iv_40 + discrepancy_oral_40 + 
-                         discrepancy_oral_80 + discrepancy_oral_320+
-                          discrepancy_tissues_male + discrepancy_tissues_female
+      discrepancy_oral_48+ discrepancy_tissues_male
+    #  discrepancy_iv_40 +discrepancy_oral_40 + 
+    # discrepancy_oral_80 + discrepancy_oral_320+
+    #   + discrepancy_tissues_female
     return(total_discrepancy)
   }
-
-    # SODI function the returns the SODI index described in Tsiros et al.2024
+  
+  # SODI function the returns the SODI index described in Tsiros et al.2024
   # predictions: list of vectors containing the predicted data
   # names of the compartments
   
@@ -608,37 +610,14 @@ ga_fitness <- function(chromosome)
   #==============================
   # Function for decoding the GA output. Simply, we take the floor of the continuous number
   decode_ga_real <- function(real_num){ 
-    # Partition coefficient grouping
-    CF1<- floor(real_num[1])
-    CF2 <- floor(real_num[2])
-    CF3 <- floor(real_num[3])
-    CF4 <- floor(real_num[4])
-    CF5 <- floor(real_num[5])
-    CF6 <- floor(real_num[6])
-    CF7 <- floor(real_num[7])
-    CF8 <- floor(real_num[8])
-    CF9 <- floor(real_num[9])
-    CF10 <- floor(real_num[10])
-    CF11 <- floor(real_num[11])
-    CF12 <- floor(real_num[12])
-    CF13 <- floor(real_num[13])
-    CF14 <- floor(real_num[14])
-    CF15 <- floor(real_num[15])
-    CF16 <- floor(real_num[16])
-    CF17 <- floor(real_num[17])
-    CF18 <- floor(real_num[18])
-    CF19 <- floor(real_num[19])
-    CF20 <- floor(real_num[20])
-
-    out <- structure(c(CF1,CF2,CF3,CF4,CF5,CF6,CF7,CF8, CF9,CF10,CF11,CF12,CF13,
-                       CF14,CF15,CF16, CF17, CF18, CF19, CF20, CF21),
-                     names = c("CF1","CF2","CF3","CF4","CF5","CF6","CF7","CF8", "CF9",
-                               "CF10","CF11","CF12","CF13",
-                               "CF14","CF15","CF16", "CF17", "CF18", "CF19", "CF20", "CF21"))
-    return(out)
+    CF <- rep(NA, length(real_num))
+    # Grouping of correctin factors
+    for (i in 1:length(CF)){
+      CF[i] <-  floor(real_num[i])
+    }
+    
+    return(CF)
   }
-  
-  
   
   #===============
   # Load data  
@@ -663,7 +642,7 @@ ga_fitness <- function(chromosome)
   
   #Decode the chromosome of the genetic algorithm
   group <- decode_ga_real(chromosome)
-
+  
   #Initialise optimiser to NULL for better error handling later
   optimizer <- NULL
   opts <- list( "algorithm" = "NLOPT_LN_NEWUOA",
@@ -680,8 +659,8 @@ ga_fitness <- function(chromosome)
     # Run the optimization algorithmm to estimate the parameter values
     optimizer <- nloptr::nloptr( x0= fit,
                                  eval_f = obj.func,
-                                 lb	= rep(log(1e-4), N_pars),
-                                 ub = rep(log(1000), N_pars),
+                                 lb	= rep(log(0.1), N_pars),
+                                 ub = rep(log(10), N_pars),
                                  opts = opts,
                                  group = group,
                                  serum_male = df_serum_male,
@@ -694,7 +673,7 @@ ga_fitness <- function(chromosome)
                                  tissue_indices_female = c(6,11),
                                  inits = inits,
                                  N_pars = N_pars), 
-
+    
     silent = TRUE
   )
   
@@ -708,7 +687,6 @@ ga_fitness <- function(chromosome)
   
   return(of_value)
 }
-
 
 
 ##############################
@@ -742,7 +720,7 @@ ga_fitness <- function(chromosome)
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 20 #number of parameters to be included in the grouping process
+N_genes <- 14 #number of parameters to be included in the grouping process
 N_pars <- 5 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
