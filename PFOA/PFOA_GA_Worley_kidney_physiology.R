@@ -12,9 +12,9 @@ ga_fitness <- function(chromosome)
   create.params  <- function(user_input){
     with( as.list(user_input),{
       # Initialise a vector for correction factors
-      CF <- rep(NA, length(group))
+      CF <- c(1,rep(NA, length(group)))
       # Initialise a vector for storing fitted parameters. The first value is 1, i.e. no change
-      parameter_values <- c(1,rep(NA, N_pars))
+      parameter_values <- rep(NA, N_pars)
       # Retrieve the fitted parameter information
       for (i in 1:N_pars){
         parameter_values[i+1] <- exp(fitted_pars[i])
@@ -182,22 +182,20 @@ ga_fitness <- function(chromosome)
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
                    "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
                    "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
-                   "kabs" = kabs,  "k0" = k0,
-                   
-                   "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
-                   "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
-                   "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
-                   "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
                   
+                   "Pstomach" =Pstomach, "Pintestine" = Pintestine,
                    
-                  'kdif' = kdif*CF[10],"kefflux" = kefflux*CF[11],
-                  "Free" = Free*CF[12], "kabs" = kabs*CF[13],  "k0" = k0*CF[14],
-                   
-                   
+                  
+                   "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
+                    "Pgonads" = Pgonads*CF[3],
+                   "Pspleen" = Pspleen*CF[4], "Pheart" = Pheart*CF[5],
+                   "Plung" = Plung*CF[6], "Pbrain" = Pbrain*CF[7], 
+                 
+                   'kdif' = kdif*CF[8],"kefflux" = kefflux*CF[9],
+                   "Free" = Free*CF[10], "kabs" = kabs*CF[11],  "k0" = k0*CF[12],
+
                    "admin.type" = admin.type,
                    "admin.time" = admin.time, "admin.dose" = admin.dose))
-      
-      
     })
   }
   
@@ -373,7 +371,7 @@ ga_fitness <- function(chromosome)
            "Cart" = Cart, 
            "Cplasma" = Aven_free/VPlas/Free,
            "Cliver" = Aliver /Vliver,
-           "Ckidneys" = APTC/Vkidney,
+           "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
            "Cbrain" = Abrain /Vbrain)
       
     })
@@ -645,7 +643,7 @@ ga_fitness <- function(chromosome)
   
   #Initialise optimiser to NULL for better error handling later
   optimizer <- NULL
-  opts <- list( "algorithm" = "NLOPT_LN_NEWUOA",
+  opts <- list( "algorithm" = "NLOPT_LN_NEWUOA",#"NLOPT_LN_NEWUOA","NLOPT_LN_SBPLX"
                 "xtol_rel" = 1e-07,
                 "ftol_rel" = 0.0,
                 "ftol_abs" = 0.0,
@@ -653,7 +651,7 @@ ga_fitness <- function(chromosome)
                 "maxeval" = 500)
   # Create initial conditions (zero initialisation)
   inits <- create.inits(list(NULL))
-  N_pars <- 5 # Number of parameters to be fitted
+  N_pars <- 4 # Number of parameters to be fitted
   fit <- log(rep(1,N_pars))
   try(
     # Run the optimization algorithmm to estimate the parameter values
@@ -720,11 +718,11 @@ ga_fitness <- function(chromosome)
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 14 #number of parameters to be included in the grouping process
-N_pars <- 5 # Number of parameters to be fitted
+N_genes <- 12 #number of parameters to be included in the grouping process
+N_pars <- 4 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
-                     lower = rep(1,N_genes), upper = rep((N_pars + 1 + 0.999999),N_genes),  
+                     lower = rep(1,N_genes), upper = rep((N_pars+ 1  + 0.999999),N_genes),  
                      population = "gareal_Population",
                      selection = "gareal_lsSelection",
                      crossover = "gareal_laCrossover", 

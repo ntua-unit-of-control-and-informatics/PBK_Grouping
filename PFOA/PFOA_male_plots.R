@@ -177,8 +177,7 @@ create.params  <- function(user_input){
                  "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
                  "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
                  "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
-                 "kabs" = kabs,  "k0" = k0,
-                 
+
                  "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
                  "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
                  "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
@@ -366,8 +365,10 @@ ode.func <- function(time, inits, params, custom.func){
          "CVkidney" = CVkidney, "CPTC" = CPTC,
          "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
-         "Cplasma" = Aven_free/VPlas/Free,
-         "Cliver" = Aliver /Vliver,
+         "Cplasma" = (Aven_free/Free)/Vven_plasma,
+         "Cliver" = (Aliver + CVliver*Vliverb) /Vliver,
+         CVliver = Cliver/Pliver
+         
          "Ckidneys" = APTC/Vkidney,
          "Cbrain" = Abrain /Vbrain)
     
