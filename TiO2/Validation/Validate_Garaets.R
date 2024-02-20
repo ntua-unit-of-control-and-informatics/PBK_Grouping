@@ -353,20 +353,29 @@ ode.func <- function(time, Initial.values, Parameters, custom.func){
 ##############################
 ### Load experimental data ###
 ##############################
-
+Mr_Ti <- 47.867
+Mr_TiO2 <- 47.867 + 32
 # Load the mean values 
 # The units of the values are ug Ti per g of tissue
 NM100_single <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM100.xlsx", sheet=1,  colNames = T, rowNames = F)
+NM100_single[,-1] <- NM100_single[,-1] * Mr_TiO2/Mr_Ti
 NM100_repeated <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM100.xlsx", sheet=2,  colNames = T, rowNames = F)
+NM100_repeated[,-1] <- NM100_repeated[,-1] * Mr_TiO2/Mr_Ti
 
 NM102_single <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM102.xlsx", sheet=1,  colNames = T, rowNames = F)
+NM102_single[,-1] <- NM102_single[,-1] * Mr_TiO2/Mr_Ti
 NM102_repeated <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM102.xlsx", sheet=2,  colNames = T, rowNames = F)
+NM102_repeated[,-1] <- NM102_repeated[,-1] * Mr_TiO2/Mr_Ti
 
 NM103_single <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM103.xlsx", sheet=1,  colNames = T, rowNames = F)
+NM103_single[,-1] <- NM103_single[,-1] * Mr_TiO2/Mr_Ti
 NM103_repeated <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM103.xlsx", sheet=2,  colNames = T, rowNames = F)
+NM103_repeated[,-1] <- NM103_repeated[,-1] * Mr_TiO2/Mr_Ti
 
 NM104_single <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM104.xlsx", sheet=1,  colNames = T, rowNames = F)
+NM104_single[,-1] <- NM104_single[,-1] * Mr_TiO2/Mr_Ti
 NM104_repeated <- openxlsx::read.xlsx("Data/Garaets_data/Female_NM104.xlsx", sheet=2,  colNames = T, rowNames = F)
+NM104_repeated[,-1] <- NM104_repeated[,-1] * Mr_TiO2/Mr_Ti
 
 data_list <- list("NM100_single"=NM100_single, "NM100_repeated"=NM100_repeated,
                    "NM102_single"=NM102_single, "NM102_repeated"=NM102_repeated,
