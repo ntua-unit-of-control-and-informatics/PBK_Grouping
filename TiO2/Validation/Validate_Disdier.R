@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation")
+setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation")
 
 
 #####################################
@@ -356,10 +356,30 @@ ode.func <- function(time, Initial.values, Parameters, custom.func){
 
 # Load the mean values 
 # The units of the values are ng Ti per g of tissue
-mean_values <- openxlsx::read.xlsx("Data/Disdier_data.xlsx", sheet=2,  colNames = T, rowNames = F)
+mean_values <- openxlsx::read.xlsx("Data/Disdier_data/Disdier_data.xlsx", sheet=2,  colNames = T, rowNames = F)
+# CORRECT THE BLOOD DATA 
+blood_cells_data <- openxlsx::read.xlsx("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/blood_data.xlsx", sheet=2)
+blood_cells_data$Abs_mean[which(blood_cells_data$Abs_mean < 0)] <- min(blood_cells_data$Abs_mean[-which(blood_cells_data$Abs_mean < 0)])
+
+plasma_data <- openxlsx::read.xlsx("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/plasma_data.xlsx", sheet=2)
+plasma_data$Abs_mean[which(plasma_data$Abs_mean < 0)] <- min(plasma_data$Abs_mean[-which(plasma_data$Abs_mean < 0)])
+
+# plasma volume to total blood volume ratio
+plasma_ratio <- 0.55
+# blood cells volume to total blood volume ratio
+cells_ratio <- 0.45
+
+total_blood_concentration <- plasma_ratio*plasma_data$Abs_mean + cells_ratio*blood_cells_data$Abs_mean
+
+mean_values$Blood <- c(total_blood_concentration, total_blood_concentration[length(total_blood_concentration)])
 
 # Transform ng/g to ug/g
 mean_values[,-1] <- mean_values[,-1]/1000
+# Transform Ti concentrations to TiO2 concentrations
+Mr_Ti <- 47.867
+Mr_TiO2 <- 47.867 + 32
+mean_values[,-1] <- mean_values[,-1] * Mr_TiO2/Mr_Ti
+
 Body_mass <- 215 # g
 Dose_per_rat <- 1 # ug/g
 
@@ -457,5 +477,5 @@ for (j in 2:dim(mean_values)[2]) {
 results_df <- results_df[-1,]
 
 write.csv(results_df,
-          "/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation/Validation_results_data/Disdier_results.csv",
+          "/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data/Disdier_results.csv",
           row.names =F)

@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation")
+setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation")
 
 
 #####################################
@@ -356,7 +356,13 @@ ode.func <- function(time, Initial.values, Parameters, custom.func){
 
 # Load the mean values 
 # The units of the values are micro-g Ti per organ
-mean_values <- openxlsx::read.xlsx("Data/Fabian_data.xlsx",  colNames = T, rowNames = F)
+mean_values <- openxlsx::read.xlsx("Data/Fabian_data/Fabian_data.xlsx",  colNames = T, rowNames = F)
+control_values <- openxlsx::read.xlsx("Data/Fabian_data/Fabian_data.xlsx", sheet=2,  colNames = T, rowNames = F)
+# Subtract the control values
+mean_values[-1] <- mean_values[-1] - control_values[-1]
+# replace the negative values of the kidney concentrations with the half of the 
+# minimum concentration measured in kidney
+mean_values$Kidneys[which(mean_values$Kidneys <= 0 )] <- min(mean_values$Kidneys[which(mean_values$Kidneys > 0 )])/2
 
 # Transform time into hours
 mean_values[,1] <- mean_values[,1]*24
@@ -452,5 +458,5 @@ for (j in 2:dim(mean_values)[2]) {
 results_df <- results_df[-1,]
 
 write.csv(results_df,
-          "/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation/Validation_results_data/Fabian_results.csv",
+          "/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data/Fabian_results.csv",
           row.names =F)

@@ -1,6 +1,6 @@
 library(ggplot2)
 
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation/Validation_results_data")
+setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data")
 column_names <- c('Study', 'NM Size', 'Anatase %', 'Rutile %', 'Dose',
                   'Injections',  'Tissue', 'Observed',   'Predicted')
 

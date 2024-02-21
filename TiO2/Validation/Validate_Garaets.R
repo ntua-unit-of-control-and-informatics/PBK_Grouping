@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation")
+setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation")
 
 
 #####################################
@@ -539,5 +539,5 @@ for (i in 1:length(repeated_dose_data)) {
 results_df <- results_df[-1,]
 
 write.csv(results_df,
-          "/Users/vassilis/Documents/GitHub/PBK_Grouping/Validation/Validation_results_data/Garaets_results.csv",
+          "/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data/Garaets_results.csv",
           row.names =F)
