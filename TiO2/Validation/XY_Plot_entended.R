@@ -68,7 +68,7 @@ scatter_plot <- ggplot()+
                              )
                      )+
   scale_shape_manual(values = Tissue_markers)+
-  
+  theme_light()+
   labs(y = expression("Predicted TiO2 (" * mu* "g/g tissue)"),
        x = expression("Observed TiO2 (" * mu* "g/g tissue)"))+
   theme(plot.title = element_text(hjust = 0.5),
