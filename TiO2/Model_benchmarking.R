@@ -996,7 +996,7 @@ create.plots <- function(compartment){
              geom_line(data=solution_PNG, aes_string(x= "Time", y= rlang::expr(!!compartment),
                                                       color =  '"PNG"'), size=1.5,alpha = 0.7) +
              geom_line(data=solution_SPPCG, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                                      color = '"SPPCG"',), size=1.5,alpha = 0.7) +
+                                                      color = '"SPPCG"'), size=1.5,alpha = 0.7) +
              geom_point(data=observations, aes_string(x="Time", y= rlang::expr(!!compartment), 
                                                       color='"Observations"'), size=4)+
              labs(title = rlang::expr(!!compartment), 
@@ -1006,13 +1006,17 @@ create.plots <- function(compartment){
              {if(compartment %in% c("Blood", "Kidneys", "Bone", "Rob", "Lungs", "Heart" ))scale_y_continuous(trans='log10')}+
              scale_color_manual("", values=cls,
                        guide = guide_legend(override.aes =
-                                              list(shape = c(NA, NA,16, NA, NA, NA),
-                                                   linetype = c(1,1,0,1,1,1))))+
+                                              list(shape = c(NA, NA,NA, 16, NA, NA),
+                                                   linetype = c(1,1,1,0,1,1))))+
              #scale_linetype_manual("Models", values=ltp) +
-             theme(legend.key.size = unit(1.5, 'cm'),  
+             theme_light() + 
+             theme(legend.position=c(1,1), 
+                   legend.justification=c(0, 1), 
+               legend.key.size = unit(1.5, 'cm'),  
                    legend.title = element_text(size=14),
                    axis.title=element_text(size=14),
-                   legend.text = element_text(size=14))
+                   legend.text = element_text(size=14)
+             )
            
          }
 plots <- lapply(names(observations)[2:length(observations)],create.plots)
@@ -1029,7 +1033,7 @@ p9 <-  plots[[9]]
 #gridExtra::grid.arrange(p5,p6,p7,p8,nrow = 2)
 #gridExtra::grid.arrange(p9,p10,nrow = 2)
 
-ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
+final_plot<-ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
          common.legend = TRUE, legend="right")
 
 #save.image(file = "Benchmarking.RData")
