@@ -1,6 +1,6 @@
 library(deSolve)
 
-setwd("")
+setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2")
 
 #####################################
 ### Function to create Parameters ###
@@ -763,25 +763,25 @@ create.plots <- function(compartment){
   excreta <- compartment %in% c("Feces", "Urine")
   ggplot(data = solution_r)+
     geom_line( aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                          color = '"R-squared"'),  size=1.5,alpha = 0.7) +
+                          color = '"R-squared"',linetype = '"R-squared"'),  size=1.5,alpha = 0.7) +
     geom_line(data=solution_pbpk, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                             color = '"PBPK index"'), size=1.5,alpha = 0.7) +
+                                             color = '"PBPK index"',linetype ='"PBPK index"'), size=1.5,alpha = 0.9) +
     geom_line(data=solution_new, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                            color =  '"SODI"'), size=1.5,alpha = 0.7) +
+                                            color =  '"SODI"',linetype =  '"SODI"'), size=1.5,alpha = 0.7) +
     geom_line(data=solution_aafe, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                             color = '"AAFE"'), size=1.5,alpha = 0.7) +
+                                             color = '"AAFE"',linetype ='"AAFE"'), size=1.5,alpha = 0.7) +
     geom_line(data=solution_rmsd, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                             color = '"RMSD"'), size=1.5,alpha = 0.7) +
+                                             color = '"RMSD"',linetype = '"RMSD"'), size=1.5,alpha = 0.7) +
     geom_point(data=observations, aes_string(x="Time", y= rlang::expr(!!compartment), 
                                              color='"Observations"'), size=4)+
     labs(title = rlang::expr(!!compartment), 
-         y = ifelse(excreta,expression("TiO2 (" * mu * "g)"),expression("TiO2 (" * mu* "g/g tissue)" )),
+         y = ifelse(excreta,"TiO2 (mg)","TiO2 (mg/g tissue)" ),
          x = "Time (hours)")+
     theme(plot.title = element_text(hjust = 0.5))+
     
     {if(compartment %in% c("Blood", "Kidneys", "Heart", "Bone", "Lungs" ))scale_y_continuous(trans='log10')}+
-    #scale_linetype_manual("", values=ltp) +
-   theme_light() + 
+    scale_linetype_manual("Metrics", values=ltp) +
+    
   scale_color_manual("", values=cls,
                        guide = guide_legend(override.aes =
                                           list(shape = c(NA, 16, NA, NA, NA, NA),
@@ -811,16 +811,12 @@ p9 <-  plots[[9]]
 #gridExtra::grid.arrange(p9,p10,nrow = 2)
 final_plot<- ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
                                common.legend = TRUE, legend="right")+
-plot.margin=unit(c(0,0,0,0), "pt")
+  theme(plot.margin=grid::unit(c(0.25,0.25,0.25,0.25), "cm"))
 
-
-# Save the plot with dynamically adjusted dimensions
-ggsave("metric_selection_low.png", plot = final_plot,
-       device = 'png', dpi = 300,
-       width = 13,
-       height = 10,
+ggsave("metric_selection_low.png",plot = final_plot,
+       device='png', dpi=320,
+       width = 15,
+       height = 12,
        units = "in")
 dev.off()
-
-
 
