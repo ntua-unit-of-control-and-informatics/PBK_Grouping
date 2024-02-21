@@ -47,6 +47,7 @@ Tissue_markers <-  c(0,1,2,5,3, 8)
 names(Tissue_markers) <- c( "Lungs",   "Spleen",  "Liver",   "Kidneys", "Blood", "Heart")
 
 Experiment <- scales::hue_pal()(4)
+Experiment <- c("#009E73", "#E69F00", "#56B4E9", "#CC79A7")
 names(Experiment) <- unique(c(Disdier_results$Experiment, Fabian_results$Experiment, Garaets_results$Experiment))
 
 scatter_plot <- ggplot()+
