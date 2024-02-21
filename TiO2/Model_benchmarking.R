@@ -1,12 +1,12 @@
 # Set the directory from where all relevant data all loaded
-setwd("")
+setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2")
 
 # Load results from genetic algorithm grouping
-load("FPG_nloptr.RData")
+load("data/FPG_nloptr.RData")
 GA_results_FPG <- GA_results@solution[1,]  
-load("PNG_nloptr.RData")
+load("data/PNG_nloptr.RData")
 GA_results_PNG <- GA_results@solution[1,]  
-load("SPPCG_nloptr.RData")
+load("data/SPPCG_nloptr.RData")
 GA_results_SPPCG <- GA_results@solution[1,]  
 # Clear all results except from the groupings
 rm(list=ls()[! ls() %in% c("GA_results_FPG", "GA_results_PNG","GA_results_SPPCG")])
@@ -34,7 +34,7 @@ rm(list=ls()[! ls() %in% c("GA_results_FPG", "GA_results_PNG","GA_results_SPPCG"
     fr_ad <- 0.0199*w + 1.644 # w in g,  Brown et al.1997 p.420. This equation gives the  adipose % of body weight 
     
     #read data from excel
-    fractions <- openxlsx::read.xlsx("Rat physiological parameters.xlsx", sheet = 1, colNames = T, rowNames = T)
+    fractions <- openxlsx::read.xlsx("data/Rat physiological parameters.xlsx", sheet = 1, colNames = T, rowNames = T)
     fractions <- as.matrix(sapply(fractions, as.numeric))
     rownames(fractions) <- all_comps
     
@@ -527,8 +527,8 @@ rm(list=ls()[! ls() %in% c("GA_results_FPG", "GA_results_PNG","GA_results_SPPCG"
   mass <- 263 #g, female Wistar Kyoto rats
   
   # Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
-  df_percent <- openxlsx::read.xlsx("Kreyling-IV-data.xlsx", sheet = 6, colNames = T, rowNames = T) # TiO2 NPs %ID/g of tissue  (Table 1)
-  excretion_percent <- openxlsx::read.xlsx("Kreyling-IV-data.xlsx", sheet = 3, colNames = T, rowNames = F) # accumulated excretory rate, expressed as %ID
+  df_percent <- openxlsx::read.xlsx("data/Kreyling-IV-data.xlsx", sheet = 6, colNames = T, rowNames = T) # TiO2 NPs %ID/g of tissue  (Table 1)
+  excretion_percent <- openxlsx::read.xlsx("data/Kreyling-IV-data.xlsx", sheet = 3, colNames = T, rowNames = F) # accumulated excretory rate, expressed as %ID
   # Drop the first time points because the graph is supposed to be cumulative dose but the cumulative feces in day 1 are less that the first time points 
   excretion_time <- round(excretion_percent[3:5,1])*24 # hours
   # Convert doses from %ID to masses
@@ -988,15 +988,15 @@ create.plots <- function(compartment){
   excreta <- compartment %in% c("Feces", "Urine")
   ggplot(data = solution_MANG)+
              geom_line( aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                   color = '"MANG"',linetype = '"MANG"'),  size=1.5,alpha = 0.7) +
+                                   color = '"MANG"'),  size=1.5,alpha = 0.7) +
              geom_line(data=solution_FPG, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                                      color = '"FPG"',linetype ='"FPG"'), size=1.5,alpha = 0.7) +
+                                                      color = '"FPG"'), size=1.5,alpha = 0.7) +
              geom_line(data=solution_MING, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                                      color = '"MING"',linetype ='"MING"'), size=1.5,alpha = 0.7) +
+                                                      color = '"MING"'), size=1.5,alpha = 0.7) +
              geom_line(data=solution_PNG, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                                      color =  '"PNG"',linetype =  '"PNG"'), size=1.5,alpha = 0.7) +
+                                                      color =  '"PNG"'), size=1.5,alpha = 0.7) +
              geom_line(data=solution_SPPCG, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                                      color = '"SPPCG"',linetype ='"SPPCG"'), size=1.5,alpha = 0.7) +
+                                                      color = '"SPPCG"'), size=1.5,alpha = 0.7) +
              geom_point(data=observations, aes_string(x="Time", y= rlang::expr(!!compartment), 
                                                       color='"Observations"'), size=4)+
              labs(title = rlang::expr(!!compartment), 
@@ -1004,12 +1004,19 @@ create.plots <- function(compartment){
                   x = "Time (hours)")+
              theme(plot.title = element_text(hjust = 0.5))+
              {if(compartment %in% c("Blood", "Kidneys", "Bone", "Rob", "Lungs", "Heart" ))scale_y_continuous(trans='log10')}+
-             scale_color_manual("", values=cls)+
-             scale_linetype_manual("Models", values=ltp) +
-             theme(legend.key.size = unit(1.5, 'cm'),  
+             scale_color_manual("", values=cls,
+                       guide = guide_legend(override.aes =
+                                              list(shape = c(NA, NA,NA, 16, NA, NA),
+                                                   linetype = c(1,1,1,0,1,1))))+
+             #scale_linetype_manual("Models", values=ltp) +
+             theme_light() + 
+             theme(legend.position=c(1,1), 
+                   legend.justification=c(0, 1), 
+               legend.key.size = unit(1.5, 'cm'),  
                    legend.title = element_text(size=14),
                    axis.title=element_text(size=14),
-                   legend.text = element_text(size=14))
+                   legend.text = element_text(size=14)
+             )
            
          }
 plots <- lapply(names(observations)[2:length(observations)],create.plots)
@@ -1026,7 +1033,19 @@ p9 <-  plots[[9]]
 #gridExtra::grid.arrange(p5,p6,p7,p8,nrow = 2)
 #gridExtra::grid.arrange(p9,p10,nrow = 2)
 
-ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
+final_plot<-ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
          common.legend = TRUE, legend="right")
 
 #save.image(file = "Benchmarking.RData")
+
+plot.margin=unit(c(0,0,0,0), "pt")
+
+
+# Save the plot with dynamically adjusted dimensions
+ggsave("model_benchmark_low.png", plot = final_plot,
+       device = 'png', dpi = 300,
+       width = 13,
+       height = 10,
+       units = "in")
+dev.off()
+
