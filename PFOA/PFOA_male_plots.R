@@ -1,12 +1,11 @@
 library(deSolve)
 library(ggplot2)
-
 #=========================
 #1. Parameters of the model
 #=========================
 create.params  <- function(user_input){
   with( as.list(user_input),{
-    # Initialise a vector for correction factors
+    ## Initialise a vector for correction factors
     CF <- rep(NA, length(group))
     # Initialise a vector for storing fitted parameters. The first value is 1, i.e. no change
     parameter_values <- c(1,rep(NA, N_pars))
@@ -177,21 +176,20 @@ create.params  <- function(user_input){
                  "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
                  "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
                  "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,
-
+                 
+                 "Pstomach" =Pstomach, "Pintestine" = Pintestine,
+                 
+                 
                  "Pliver" = Pliver*CF[1],  "Prest" = Prest*CF[2], 
-                 "Pintestine" = Pintestine*CF[3], "Pgonads" = Pgonads*CF[4],
-                 "Pspleen" = Pspleen*CF[5], "Pheart" = Pheart*CF[6],
-                 "Plung" = Plung*CF[7], "Pbrain" = Pbrain*CF[8], "Pstomach" =Pstomach*CF[9], 
+                 "Pgonads" = Pgonads*CF[3],
+                 "Pspleen" = Pspleen*CF[4], "Pheart" = Pheart*CF[5],
+                 "Plung" = Plung*CF[6], "Pbrain" = Pbrain*CF[7], 
                  
-                 
-                 'kdif' = kdif*CF[10],"kefflux" = kefflux*CF[11],
-                 "Free" = Free*CF[12], "kabs" = kabs*CF[13],  "k0" = k0*CF[14],
-                 
+                 'kdif' = kdif*CF[8],"kefflux" = kefflux*CF[9],
+                 "Free" = Free*CF[10], "kabs" = kabs*CF[11],  "k0" = k0*CF[12],
                  
                  "admin.type" = admin.type,
                  "admin.time" = admin.time, "admin.dose" = admin.dose))
-    
-    
   })
 }
 
@@ -365,15 +363,14 @@ ode.func <- function(time, inits, params, custom.func){
          "CVkidney" = CVkidney, "CPTC" = CPTC,
          "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
-         "Cplasma" = (Aven_free/Free)/Vven_plasma,
-         "Cliver" = (Aliver + CVliver*Vliverb) /Vliver,
-         CVliver = Cliver/Pliver
-         
-         "Ckidneys" = APTC/Vkidney,
+         "Cplasma" = Aven_free/VPlas/Free,
+         "Cliver" = Aliver /Vliver,
+         "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
          "Cbrain" = Abrain /Vbrain)
     
   })
 }
+
 
 
 #======================
@@ -619,7 +616,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   # Load data  
   #===============
   setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-  load("PFOA.Rdata")
+  load("PFOA_male.Rdata")
   MW = 414.07	#PFOA molecular mass (g/mol)
   BW_male <- 0.3
   BW_female <- 0.2
@@ -654,7 +651,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
                 "print_level" = 1)
   # Create initial conditions (zero initialisation)
   inits <- create.inits(list(NULL))
-  N_pars <- 5 # Number of parameters to be fitted
+  N_pars <- 4 # Number of parameters to be fitted
  
   fit <- log(rep(1,N_pars))
   try(
