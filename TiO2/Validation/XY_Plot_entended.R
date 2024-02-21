@@ -50,6 +50,9 @@ Experiment <- scales::hue_pal()(4)
 Experiment <- c("#009E73", "#E69F00", "#56B4E9", "#CC79A7")
 names(Experiment) <- unique(c(Disdier_results$Experiment, Fabian_results$Experiment, Garaets_results$Experiment))
 
+mu <-expression(mu)
+test_label <- paste("Dose =", 215, mu, "g")
+
 scatter_plot <- ggplot()+
   geom_abline(intercept = log10(1), slope = 1, linetype = "dashed", color = "black", linewidth = 1.5,alpha = 0.7) +  # Identity line in log10 scale
   geom_point(data = Disdier_results, aes(x=Observed, y=Predicted, color = Experiment, shape = Tissue), size=4, stroke = 1.5)+
@@ -62,12 +65,21 @@ scatter_plot <- ggplot()+
   
   
   scale_color_manual(values = Experiment,
-                    labels = c(expression("Disdier et al. (2015), Dose = 215 " * mu* "g"),
-                               expression("Fabian et al. (2008), Dose = 1250 " * mu* "g"),
-                               expression("Garaets et al. (2014), Dose = 2300 " * mu* "g x 5 Doses"),
-                               expression("Garaets et al. (2014), Dose = 2300 " * mu* "g x 1 Dose")
+                    labels = c(#expression("Disdier et al. (2015), Dose = 215 " * mu* "g"),
+                               str_wrap("Disdier et al. (2015): Dose = 215 \u03BCg", 25),
+                               #expression("Fabian et al. (2008), Dose = 1250 " * mu* "g"),
+                               str_wrap("Fabian et al. (2008): Dose = 1250 \u03BCg", 25),
+                               
+                               #expression(paste("Dose = \n215 " , mu, "g")),
+                               str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 5 Doses", 25),
+                               #expression("Garaets et al. (2014), Dose = 2300 " * mu* "g x 1 Dose")
+                               str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 1 Dose", 25)
                              )
                      )+
+  
+  theme(legend.spacing.y = unit(1, 'cm')) +
+  guides(fill = guide_legend(byrow = TRUE))+
+  
   scale_shape_manual(values = Tissue_markers)+
   theme_light()+
   labs(y = expression("Predicted TiO2 (" * mu* "g/g tissue)"),
@@ -75,7 +87,7 @@ scatter_plot <- ggplot()+
   theme(plot.title = element_text(hjust = 0.5),
         legend.key.size = unit(1.0, 'cm'),  
         legend.title = element_text(size=14),
-        legend.text = element_text(size=14,  hjust = 0),
+        legend.text = element_text(size=12,  hjust = 0),
         axis.text = element_text(size = 14),
         axis.title = element_text(size = 14),
         )
