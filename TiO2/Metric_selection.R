@@ -24,7 +24,7 @@ create.params <- function(comp_names, w){
   fr_ad <- 0.0199*w + 1.644 # w in g,  Brown et al.1997 p.420. This equation gives the  adipose % of body weight 
   
   #read data from excel
-  fractions <- openxlsx::read.xlsx("Rat physiological parameters.xlsx", sheet = 1, colNames = T, rowNames = T)
+  fractions <- openxlsx::read.xlsx("data/Rat physiological parameters.xlsx", sheet = 1, colNames = T, rowNames = T)
   fractions <- as.matrix(sapply(fractions, as.numeric))
   rownames(fractions) <- all_comps
   
@@ -592,8 +592,8 @@ dose <- 18.15 # ug # Since results are in %ID we used a random dose that is with
 mass <- 263 #g, female Wistar Kyoto rats
 
 # Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
-df_percent <- openxlsx::read.xlsx("Kreyling-IV-data.xlsx", sheet = 6, colNames = T, rowNames = T) # TiO2 NPs %ID/g of tissue  (Table 1)
-excretion_percent <- openxlsx::read.xlsx("Kreyling-IV-data.xlsx", sheet = 3, colNames = T, rowNames = F) # accumulated excretory rate, expressed as %ID
+df_percent <- openxlsx::read.xlsx("data/Kreyling-IV-data.xlsx", sheet = 6, colNames = T, rowNames = T) # TiO2 NPs %ID/g of tissue  (Table 1)
+excretion_percent <- openxlsx::read.xlsx("data/Kreyling-IV-data.xlsx", sheet = 3, colNames = T, rowNames = F) # accumulated excretory rate, expressed as %ID
 # Drop the first time points because the graph is supposed to be cumulative dose but the cumulative feces in day 1 are less that the first time points 
 excretion_time <- round(excretion_percent[3:5,1])*24 # hours
 # Convert doses from %ID to masses
@@ -688,20 +688,20 @@ max_params_rmsd <- exp(nm_optimizer_max_rmsd$par)
 # Prepare results with r-squared metric
 params_r <- c(phys_pars, position, max_params_r)
 solution_r_pre <- data.frame(ode(times = sample_time,  func = ode.func,
-                           y = inits, parms = params_r, 
-                           method="bdf",rtol = 1e-5, atol = 1e-5))
+                                 y = inits, parms = params_r, 
+                                 method="bdf",rtol = 1e-5, atol = 1e-5))
 
 solution_r <- data.frame(solution_r_pre$time, solution_r_pre$C_li, solution_r_pre$C_spl, solution_r_pre$C_ki,
-                            solution_r_pre$C_lu, solution_r_pre$C_ht, solution_r_pre$Blood,
-                            solution_r_pre$C_bone,  solution_r_pre$C_soft, solution_r_pre$Feces)
+                         solution_r_pre$C_lu, solution_r_pre$C_ht, solution_r_pre$Blood,
+                         solution_r_pre$C_bone,  solution_r_pre$C_soft, solution_r_pre$Feces)
 names(solution_r) <- c("Time",  "Liver",  "Spleen","Kidneys","Lungs","Heart","Blood","Bone", "RoB", "Feces")
 
 
 # Prepare results with PBPK index metric
 params_pbpk <- c(phys_pars, position, max_params_pbpk)
 solution_pbpk_pre <- data.frame(ode(times = sample_time,  func = ode.func,
-                                 y = inits, parms = params_pbpk, 
-                                 method="bdf",rtol = 1e-5, atol = 1e-5))
+                                    y = inits, parms = params_pbpk, 
+                                    method="bdf",rtol = 1e-5, atol = 1e-5))
 
 solution_pbpk <- data.frame(solution_pbpk_pre$time, solution_pbpk_pre$C_li, solution_pbpk_pre$C_spl, solution_pbpk_pre$C_ki,
                             solution_pbpk_pre$C_lu, solution_pbpk_pre$C_ht, solution_pbpk_pre$Blood,
@@ -709,23 +709,23 @@ solution_pbpk <- data.frame(solution_pbpk_pre$time, solution_pbpk_pre$C_li, solu
 names(solution_pbpk) <- c("Time",  "Liver",  "Spleen","Kidneys","Lungs","Heart","Blood","Bone", "RoB", "Feces")
 
 
-# Prepare results with PBKOF metric
+# Prepare results with SODI metric
 params_new <- c(phys_pars, position, max_params_new)
 solution_new_pre <- data.frame(ode(times = sample_time,  func = ode.func,
-                                 y = inits, parms = params_new, 
-                                 method="bdf",rtol = 1e-5, atol = 1e-5))
+                                   y = inits, parms = params_new, 
+                                   method="bdf",rtol = 1e-5, atol = 1e-5))
 
 solution_new <- data.frame(solution_new_pre$time, solution_new_pre$C_li, solution_new_pre$C_spl, solution_new_pre$C_ki,
-                            solution_new_pre$C_lu, solution_new_pre$C_ht, solution_new_pre$Blood,
-                            solution_new_pre$C_bone,  solution_new_pre$C_soft, solution_new_pre$Feces)
+                           solution_new_pre$C_lu, solution_new_pre$C_ht, solution_new_pre$Blood,
+                           solution_new_pre$C_bone,  solution_new_pre$C_soft, solution_new_pre$Feces)
 names(solution_new) <- c("Time",  "Liver",  "Spleen","Kidneys","Lungs","Heart","Blood","Bone", "RoB", "Feces")
 
 
 # Prepare results with AAFE metric
 params_aafe<- c(phys_pars, position, max_params_aafe)
 solution_aafe_pre <- data.frame(ode(times = sample_time,  func = ode.func,
-                                 y = inits, parms = params_aafe, 
-                                 method="bdf",rtol = 1e-5, atol = 1e-5))
+                                    y = inits, parms = params_aafe, 
+                                    method="bdf",rtol = 1e-5, atol = 1e-5))
 
 solution_aafe <- data.frame(solution_aafe_pre$time, solution_aafe_pre$C_li, solution_aafe_pre$C_spl, solution_aafe_pre$C_ki,
                             solution_aafe_pre$C_lu, solution_aafe_pre$C_ht, solution_aafe_pre$Blood,
@@ -736,8 +736,8 @@ names(solution_aafe) <- c("Time",  "Liver",  "Spleen","Kidneys","Lungs","Heart",
 # Prepare results with RMSD metric
 params_rmsd <- c(phys_pars, position, max_params_rmsd)
 solution_rmsd_pre <- data.frame(ode(times = sample_time,  func = ode.func,
-                                 y = inits, parms = params_rmsd, 
-                                 method="bdf",rtol = 1e-5, atol = 1e-5))
+                                    y = inits, parms = params_rmsd, 
+                                    method="bdf",rtol = 1e-5, atol = 1e-5))
 
 solution_rmsd <- data.frame(solution_rmsd_pre$time, solution_rmsd_pre$C_li, solution_rmsd_pre$C_spl, solution_rmsd_pre$C_ki,
                             solution_rmsd_pre$C_lu, solution_rmsd_pre$C_ht, solution_rmsd_pre$Blood,
@@ -754,8 +754,8 @@ names(observations) <- c("Time",  "Liver",  "Spleen","Kidneys","Lungs","Heart","
 library(ggplot2)
 
 # Defining the linetype and colour of each curve
-ltp <- c("R-squared" = "twodash","RMSD" ="dotted", "PBKOF" = "solid", "AAFE" = "longdash","PBPK index" = "dashed")
-cls <-  c("R-squared" = "#56B4E9", "RMSD" = "#E69F00", "PBKOF" ="#000000", "AAFE" = "#009E73", "PBPK index" ="#CC79A7",
+ltp <- c("R-squared" = "twodash","RMSD" ="dotted", "SODI" = "solid", "AAFE" = "longdash","PBPK index" = "dashed")
+cls <-  c("R-squared" = "#56B4E9", "RMSD" = "#E69F00", "SODI" ="#000000", "AAFE" = "#009E73", "PBPK index" ="#CC79A7",
           "Observations" = "#D55E00")
 
 
@@ -763,28 +763,36 @@ create.plots <- function(compartment){
   excreta <- compartment %in% c("Feces", "Urine")
   ggplot(data = solution_r)+
     geom_line( aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                          color = '"R-squared"',linetype = '"R-squared"'),  size=1.5,alpha = 0.7) +
+                          color = '"R-squared"'),  size=1.5,alpha = 0.7) +
     geom_line(data=solution_pbpk, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                             color = '"PBPK index"',linetype ='"PBPK index"'), size=1.5,alpha = 0.9) +
+                                             color = '"PBPK index"'), size=1.5,alpha = 0.7) +
     geom_line(data=solution_new, aes_string(x= "Time", y= rlang::expr(!!compartment),
-                                            color =  '"PBKOF"',linetype =  '"PBKOF"'), size=1.5,alpha = 0.7) +
+                                            color =  '"SODI"'), size=1.5,alpha = 0.7) +
     geom_line(data=solution_aafe, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                             color = '"AAFE"',linetype ='"AAFE"'), size=1.5,alpha = 0.7) +
+                                             color = '"AAFE"'), size=1.5,alpha = 0.7) +
     geom_line(data=solution_rmsd, aes_string(x= "Time", y= rlang::expr(!!compartment), 
-                                             color = '"RMSD"',linetype = '"RMSD"'), size=1.5,alpha = 0.7) +
+                                             color = '"RMSD"'), size=1.5,alpha = 0.7) +
     geom_point(data=observations, aes_string(x="Time", y= rlang::expr(!!compartment), 
                                              color='"Observations"'), size=4)+
     labs(title = rlang::expr(!!compartment), 
-         y = ifelse(excreta,"TiO2 (mg)","TiO2 (mg/g tissue)" ),
+         y = ifelse(excreta,expression("TiO2 (" * mu * "g)"),expression("TiO2 (" * mu* "g/g tissue)" )),
          x = "Time (hours)")+
     theme(plot.title = element_text(hjust = 0.5))+
+    
     {if(compartment %in% c("Blood", "Kidneys", "Heart", "Bone", "Lungs" ))scale_y_continuous(trans='log10')}+
-    scale_color_manual("", values=cls)+
-    scale_linetype_manual("Metrics", values=ltp) +
-    theme(legend.key.size = unit(1.5, 'cm'),  
-          legend.title = element_text(size=14),
-          legend.text = element_text(size=14),
-          axis.text = element_text(size = 14))
+    #scale_linetype_manual("", values=ltp) +
+   theme_light() + 
+  scale_color_manual("", values=cls,
+                       guide = guide_legend(override.aes =
+                                          list(shape = c(NA, 16, NA, NA, NA, NA),
+                                               linetype = c(1,0,1,1,1,1))))+
+    theme(  legend.justification = "top" ,
+            legend.key.size = unit(1.5, 'cm'),  
+            legend.title = element_text(size=14),
+            legend.text = element_text(size=14),
+            axis.text = element_text(size = 14))+
+    theme(plot.margin=grid::unit(c(0.25,0.25,0.25,0.25), "cm"))
+  
   
 }
 
@@ -801,8 +809,18 @@ p9 <-  plots[[9]]
 #gridExtra::grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8, p9,p10, nrow = 4)
 #gridExtra::grid.arrange(p5,p6,p7,p8,nrow = 2)
 #gridExtra::grid.arrange(p9,p10,nrow = 2)
+final_plot<- ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
+                               common.legend = TRUE, legend="right")+
+plot.margin=unit(c(0,0,0,0), "pt")
 
-ggpubr::ggarrange(p1, p2, p3, p4,p5,p6,p7,p8, p9, ncol=3, nrow=4, 
-                  common.legend = TRUE, legend="right")
+
+# Save the plot with dynamically adjusted dimensions
+ggsave("metric_selection_low.png", plot = final_plot,
+       device = 'png', dpi = 300,
+       width = 13,
+       height = 10,
+       units = "in")
+dev.off()
+
 
 
