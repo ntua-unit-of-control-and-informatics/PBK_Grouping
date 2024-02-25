@@ -179,22 +179,21 @@ ga_fitness <- function(chromosome)
                    "Vliverb" = Vliverb,
                    
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
-                   "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
-                   "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,"Km_baso" = Km_baso,
-                   "Pstomach" =Pstomach, 
-                   "Pintestine" = Pintestine,
+                    "kbile" = kbile, "kurine" = kurine, 
+                   "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,
                   
                    "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                    "Free" = Free*parameter_values[5],
                    "kefflux" = kefflux*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
                    
                    "Prest" = Prest*CF[1], 
-                   "Pgonads" = Pgonads*CF[2],
-                   "Pspleen" = Pspleen*CF[3], "Pheart" = Pheart*CF[4],
-                   "Plung" = Plung*CF[5], 
-                   
-                   "Vmax_baso" = Vmax_baso *CF[6], "k0" = k0*CF[7], 
-                    'kdif' = kdif**CF[8],
+                   "Pgonads" = Pgonads*CF[1],
+                   "Pspleen" = Pspleen*CF[1], "Pheart" = Pheart*CF[1],
+                   "Plung" = Plung*CF[1],  "Pstomach" =Pstomach*CF[1], 
+                   "Pintestine" = Pintestine*CF[1],
+
+                   "Vmax_baso" = Vmax_baso *CF[2], "k0" = k0*CF[3], 
+                    'kdif' = kdif*CF[4],"Vmax_apical" = Vmax_apical*CF[5],
                    
                    "admin.type" = admin.type,
                    "admin.time" = admin.time, "admin.dose" = admin.dose))
@@ -373,7 +372,7 @@ ga_fitness <- function(chromosome)
            "Cart" = Cart, 
            "Cplasma_ven" = Aven_free/Vven_plasma/Free,
            "Cliver" = Aliver /Vliver,
-           "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
+           "Ckidneys" = APTC/Vkidney,
            "Cbrain" = Abrain /Vbrain,
            "Cintestine" = Aintestine /Vintestine,
            "Ctestis" = Agonads/Vgonads,
@@ -729,18 +728,17 @@ ga_fitness <- function(chromosome)
 # gareal_rsMutation: Random mutation around the solution.
 
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 8#number of total parameters to be included in the grouping process
-N_pc <- 5 #Number of partition coefficients
+N_genes <- 5#number of total parameters to be included in the grouping process
 N_pars <- 5 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
-                     lower = c(rep(1,N_pc),rep(4,(N_genes-N_pc))),
-                     upper = c(rep( (3  + 0.999999),N_pc), rep( (7 + 0.999999),(N_genes-N_pc))), 
-                     population = "gareal_rwSelection",
-                     selection = "gareal_lsSelection",
+                     lower = c(1,rep(4,4)),
+                     upper = c((3  + 0.999999), rep( (7 + 0.999999),4)), 
+                     population = "gareal_Population",
+                     selection = "gareal_lrSelection",
                      crossover = "gareal_blxCrossover", 
                      mutation = "gareal_raMutation",
-                     popSize =  8*(parallel::detectCores()), #the population size.
+                     popSize = 3*(parallel::detectCores()), #the population size.
                      pcrossover = 0.85, #the probability of crossover between pairs of chromosomes.
                      pmutation = 0.4, #the probability of mutation in a parent chromosome
                      elitism = 5, #the number of best fitness individuals to survive at each generation. 
@@ -753,4 +751,4 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "Data/PFOA_GA_male_rat.RData")
+save.image(file = "Data/PFOA_GA_male_rat_1.RData")
