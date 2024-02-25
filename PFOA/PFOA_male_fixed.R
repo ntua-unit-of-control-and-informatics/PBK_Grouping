@@ -366,10 +366,19 @@ ode.func <- function(time, inits, params, custom.func){
          "CVkidney" = CVkidney, "CPTC" = CPTC,
          "Cfil" = Cfil,  "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
-         "Cplasma" = Aven_free/VPlas/Free,
+         "Cplasma_ven" = Aven_free/Vven_plasma/Free,
          "Cliver" = Aliver /Vliver,
          "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
-         "Cbrain" = Abrain /Vbrain)
+         "Cbrain" = Abrain /Vbrain,
+         "Cintestine" =  Aintestine /Vintestine,
+         "Ctestis" = Agonads/Vgonads,
+         "Cspleen" = Aspleen /Vspleen,
+         "Cheart" = Aheart /Vheart,
+         "Clung" = Alung /Vlung,
+         "Cstomach" = Astomach /Vstomach,
+         "Ccarcass" = Arest /Vrest,
+         "Cblood_art" = (Aart_free/Vart_plasma/Free)/(1-0.46) # from plasma to blood by accounting for hematocrit
+         )
     
   })
 }
@@ -412,7 +421,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
                                         y = inits, parms = parameters, events = events,
                                         method="lsodes",rtol = 1e-4, atol = 1e-4))
     
-    concentrations <- data.frame("time" = solution$time, "Cplasma" = solution$Cplasma)
+    concentrations <- data.frame("time" = solution$time, "Cplasma" = solution$Cplasma_ven)
     experimental_time_points <- serum$Time[indices[1]:indices[2]]
     concentrations <- concentrations[concentrations$time %in% experimental_time_points, "Cplasma"]
     
@@ -618,16 +627,16 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #===============
   # Load data  
   #===============
-  setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
+  setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA")
   load("PFOA_fixed_params.RData")
   MW = 414.07	#PFOA molecular mass (g/mol)
   BW_male <- 0.3
   BW_female <- 0.2
   # Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
-  df_serum_male <- openxlsx::read.xlsx("serum_male.xlsx",  colNames = T, rowNames = F)
-  df_tissue_male <- openxlsx::read.xlsx("tissue_male.xlsx", colNames = T, rowNames = F)
-  df_serum_female <- openxlsx::read.xlsx("serum_female.xlsx",  colNames = T, rowNames = F)
-  df_tissue_female <- openxlsx::read.xlsx("tissue_female.xlsx", colNames = T, rowNames = F)
+  df_serum_male <- openxlsx::read.xlsx("Data/Dzierlenga_serum_male.xlsx",  colNames = T, rowNames = F)
+  df_tissue_male <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_male.xlsx", colNames = T, rowNames = F)
+  df_serum_female <- openxlsx::read.xlsx("Data/Dzierlenga_serum_female.xlsx",  colNames = T, rowNames = F)
+  df_tissue_female <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_female.xlsx", colNames = T, rowNames = F)
   #Rename columns for easier handling
   colnames(df_serum_male) <- c("Time", "Mass", "Dose", "Type")
   colnames(df_tissue_male) <- c("Time", "Mass", "Dose", "Tissue")
