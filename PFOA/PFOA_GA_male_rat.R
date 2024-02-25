@@ -736,7 +736,7 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      upper = c((3  + 0.999999), rep( (7 + 0.999999),4)), 
                      population = "gareal_Population",
                      selection = "gareal_lrSelection",
-                     crossover = "gareal_blxCrossover", 
+                     crossover = "gareal_spCrossover", 
                      mutation = "gareal_raMutation",
                      popSize = 3*(parallel::detectCores()), #the population size.
                      pcrossover = 0.85, #the probability of crossover between pairs of chromosomes.
@@ -751,4 +751,4 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "Data/PFOA_GA_male_rat_1.RData")
+save.image(file = "Data/PFOA_GA_male_rat_3.RData")
