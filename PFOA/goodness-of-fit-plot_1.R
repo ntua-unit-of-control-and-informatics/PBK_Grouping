@@ -367,6 +367,8 @@ ode.func <- function(time, inits, params, custom.func){
          "Cfil" = Cfil, "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
          "Cplasma_ven" = Aven_free/Vven_plasma/Free,
+         "Cplasma_art" = Aart_free/Vart_plasma/Free,
+         "Cliver" = Aliver /Vliver,
          "Cliver" = Aliver /Vliver,
          "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
          "Cbrain" = Abrain /Vbrain,
@@ -624,8 +626,8 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #===============
   # Load data  
   #===============
-  setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-  load("Data/PFOA_GA_male_rat.RData")
+  setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA")
+  load("Data/PFOA_GA_male_rat_1.RData")
   MW = 414.07	#PFOA molecular mass (g/mol)
   BW_male <- 0.2#kg based on Cui et al. (2008)
   BW_female <- 0.2
@@ -686,7 +688,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   )
   # fitted parameter values
   fitted_pars = optimizer$solution
-  save.image("Validation/fitted_model.RData")
+  save.image("Validation/fitted_model_1.RData")
   #Function for solving the ODEs given the solution of the GA and the optimisation problem
   solve_odes <- function(admin.type, admin.dose, BW, sex, fitted_pars, group,N_pars ){
     # Calculate PBK parameters
