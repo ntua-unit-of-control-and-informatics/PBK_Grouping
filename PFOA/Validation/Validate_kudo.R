@@ -1,10 +1,10 @@
 library(deSolve)
-setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
 #===============
-load("model_params.RData")
+load("fitted_model.RData")
 # Body weight Kudo 2007
 BW <- 0.29 #kg
 #low dose
@@ -20,7 +20,7 @@ solution_low <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
                       y = inits, parms = parameters, events = events,
                       method="lsodes",rtol = 1e-7, atol = 1e-7))
 
-pred_comps <- c( "Cplasma", "Cliver", "Ckidneys","Cintestine", 
+pred_comps <- c( "Cplasma_ven", "Cliver", "Ckidneys","Cintestine", 
             "Ctestis", "Cspleen", "Cheart", "Clung", "Cbrain","Cstomach",  "Ccarcass")
 solution_low <- solution_low[solution_low$time ==2,pred_comps]
 
@@ -72,5 +72,5 @@ results_df_high <- data.frame("Study" = "Kudo", "Dose" =  tissues_high$Dose_mg_p
 results_df <- rbind(results_df_low, results_df_high)
 
 write.csv(results_df,
-          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kudo_results.csv",
+          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kudo_results.csv",
           row.names =F)

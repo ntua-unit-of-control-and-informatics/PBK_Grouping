@@ -382,7 +382,7 @@ ga_fitness <- function(chromosome)
            "Clung" = Alung /Vlung,
            "Cstomach" = Astomach /Vstomach,
            "Ccarcass" = Arest /Vrest,
-           "Cblood_art" = (Aart_free/Vart_plasma/Free)/(1-0.46) # from plasma to blood by accounting for hematocrit
+           "Cblood_art" = (Aart_free/Vart_plasma/Free)/2 # from plasma to blood based on kudo et al. (2007)
       )
     })
   }
@@ -421,7 +421,7 @@ ga_fitness <- function(chromosome)
       )
       solution <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
                                           y = inits, parms = parameters, events = events,
-                                          method="lsodes",rtol = 1e-4, atol = 1e-4))
+                                          method="lsodes",rtol = 1e-3, atol = 1e-3))
       
       concentrations <- data.frame("time" = solution$time, "Cplasma" = solution$Cplasma_ven)
       experimental_time_points <- serum$Time[indices[1]:indices[2]]
@@ -434,7 +434,7 @@ ga_fitness <- function(chromosome)
       return(list("discrepancy" = discrepancy,"solution" = solution))
     }
     # Weight from https://animal.ncku.edu.tw/p/412-1130-16363.php?Lang=en based on SD rats 8 weeks old
-    BW_male <- 0.2#kg based on kudo et al. (2007)
+    BW_male <- 0.2#kg based on Cui et al. (2008)
     BW_female <- 0.2#kg
     #######################
     # Goodness-of-fit on male serum
@@ -632,10 +632,10 @@ ga_fitness <- function(chromosome)
   #===============
   MW = 414.07	#PFOA molecular mass (g/mol)
   # Load raw data 
-  df_serum_male <- openxlsx::read.xlsx("serum_male.xlsx",  colNames = T, rowNames = F)
-  df_tissue_male <- openxlsx::read.xlsx("tissue_male.xlsx", colNames = T, rowNames = F)
-  df_serum_female <- openxlsx::read.xlsx("serum_female.xlsx",  colNames = T, rowNames = F)
-  df_tissue_female <- openxlsx::read.xlsx("tissue_female.xlsx", colNames = T, rowNames = F)
+  df_serum_male <- openxlsx::read.xlsx("Data/Dzierlenga_serum_male.xlsx",  colNames = T, rowNames = F)
+  df_tissue_male <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_male.xlsx", colNames = T, rowNames = F)
+  df_serum_female <- openxlsx::read.xlsx("Data/Dzierlenga_serum_female.xlsx",  colNames = T, rowNames = F)
+  df_tissue_female <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_female.xlsx", colNames = T, rowNames = F)
   #Rename columns for easier handling
   colnames(df_serum_male) <- c("Time", "Mass", "Dose", "Type")
   colnames(df_tissue_male) <- c("Time", "Mass", "Dose", "Tissue")
@@ -727,6 +727,7 @@ ga_fitness <- function(chromosome)
 # gareal_raMutation: Uniform random mutation
 # gareal_nraMutation: Nonuniform random mutation.
 # gareal_rsMutation: Random mutation around the solution.
+
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
 N_genes <- 8#number of total parameters to be included in the grouping process
 N_pc <- 5 #Number of partition coefficients
@@ -735,21 +736,21 @@ start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
                      lower = c(rep(1,N_pc),rep(4,(N_genes-N_pc))),
                      upper = c(rep( (3  + 0.999999),N_pc), rep( (7 + 0.999999),(N_genes-N_pc))), 
-                     population = "gareal_Population",
+                     population = "gareal_rwSelection",
                      selection = "gareal_lsSelection",
-                     crossover = "gareal_laCrossover", 
+                     crossover = "gareal_blxCrossover", 
                      mutation = "gareal_raMutation",
-                     popSize =  60, #the population size.
+                     popSize =  8*(parallel::detectCores()), #the population size.
                      pcrossover = 0.85, #the probability of crossover between pairs of chromosomes.
                      pmutation = 0.4, #the probability of mutation in a parent chromosome
                      elitism = 5, #the number of best fitness individuals to survive at each generation. 
                      maxiter = 200, #the maximum number of iterations to run before the GA search is halted.
-                     run = 50, # the number of consecutive generations without any improvement
+                     run = 25, # the number of consecutive generations without any improvement
                      #in the best fitness value before the GA is stopped.
                      keepBest = TRUE, # best solutions at each iteration should be saved in a slot called bestSol.
                      parallel = (parallel::detectCores()),
                      monitor =plot,
-                     seed = 1234)
+                     seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "PFOA_GA_male_rat.RData")
+save.image(file = "Data/PFOA_GA_male_rat.RData")

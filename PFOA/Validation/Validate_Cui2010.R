@@ -1,11 +1,11 @@
 library(deSolve)
-setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
 #===============
-load("model_params.RData")
-# Body weight Kim 2016
+load("fitted_model.RData")
+# Body weight 
 BW <- 0.2 #kg
 #5mg/kg dose
 admin.time <- seq(0.01,27*24.01,24)
@@ -63,9 +63,9 @@ feces5_approximate <- approxfun(exp_time/24, tissues_5_daily[tissues_5_daily$Exc
 total_daily_feces5 <- feces5_approximate(approx_times)
 # Cumulative excretion on experimental days
 feces_5_cum <- cumsum(total_daily_feces5)[c(1,3,5,7,10,14,18,21,24,28)]
+tissues_5 <- tissues_5_daily
+tissues_5$Mass_mg <- c(urine_5_cum,feces_5_cum)
 
-
-  
 #Analysis for 5mg/kg
 tissues_20_daily <- tissues[tissues$Dose_mg_per_kg == 20,]
 approx_times <- 1:28
@@ -80,7 +80,8 @@ feces20_approximate <- approxfun(exp_time/24, tissues_20_daily[tissues_20_daily$
 total_daily_feces20 <- feces20_approximate(approx_times)
 # Cumulative excretion on experimental days
 feces_20_cum <- cumsum(total_daily_feces20)[c(1,3,5,7,10,14,18,21,24,28)]
-
+tissues_20 <- tissues_20_daily
+tissues_20$Mass_mg <- c(urine_20_cum,feces_20_cum)
 # Gather the required data for the x-y plot
 
 results_df_5<- data.frame("Study" = "Cui_2010", "Dose" =  tissues_5$Dose_mg_per_kg,
@@ -100,5 +101,5 @@ results_df_20<- data.frame("Study" = "Cui_2010", "Dose" =  tissues_20$Dose_mg_pe
 results_df <- rbind(results_df_5, results_df_20)
 
 write.csv(results_df,
-          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2010_results.csv",
+          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2010_results.csv",
           row.names =F)

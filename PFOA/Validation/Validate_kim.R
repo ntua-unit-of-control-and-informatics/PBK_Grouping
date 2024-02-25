@@ -1,10 +1,10 @@
 library(deSolve)
-setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
 #===============
-load("model_params.RData")
+load("fitted_model.RData")
 # Body weight Kim 2016
 BW <- 0.25#kg, from Kim et al. 2018
 #iv dose
@@ -71,5 +71,5 @@ results_df_oral<- data.frame("Study" = "Kim", "Dose" =  tissues_oral$Dose_mg_per
 results_df <- rbind(results_df_iv, results_df_oral)
 
 write.csv(results_df,
-          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kim_results.csv",
+          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kim_results.csv",
           row.names =F)

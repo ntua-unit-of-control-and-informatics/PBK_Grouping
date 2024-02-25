@@ -1,11 +1,11 @@
 library(deSolve)
-setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
 #===============
-load("model_params.RData")
-# Body weight Kim 2016
+load("fitted_model.RData")
+# Body weight 
 BW <- 0.2 #kg
 #5mg/kg dose
 admin.time <- seq(0.01,27*24.01,24)
@@ -72,5 +72,5 @@ results_df_20<- data.frame("Study" = "Cui_2010", "Dose" =  tissues_20$Dose_mg_pe
 results_df <- rbind(results_df_5, results_df_20)
 
 write.csv(results_df,
-          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2008_results.csv",
+          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2008_results.csv",
           row.names =F)

@@ -378,7 +378,7 @@ ode.func <- function(time, inits, params, custom.func){
          "Clung" = Alung /Vlung,
          "Cstomach" = Astomach /Vstomach,
          "Ccarcass" = Arest /Vrest,
-         "Cblood_art" = (Aart_free/Vart_plasma/Free)/(1-0.46) # from plasma to blood by accounting for hematocrit
+         "Cblood_art" = (Aart_free/Vart_plasma/Free)/2 # from plasma to blood based on kudo et al. (2007)
     )
   })
 }
@@ -430,7 +430,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
     return(list("discrepancy" = discrepancy,"solution" = solution))
   }
   # Weight from https://animal.ncku.edu.tw/p/412-1130-16363.php?Lang=en based on SD rats 8 weeks old
-  BW_male <- 0.2#kg based on kudo et al. (2007)
+  BW_male <- 0.2#kg based on Cui et al. (2008)
   BW_female <- 0.2#kg
   #######################
   # Goodness-of-fit on male serum
@@ -626,9 +626,9 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   # Load data  
   #===============
   setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-  load("PFOA_GA_male_rat.RData")
+  load("Data/PFOA_GA_male_rat.RData")
   MW = 414.07	#PFOA molecular mass (g/mol)
-  BW_male <- 0.2#kg based on kudo et al. (2007)
+  BW_male <- 0.2#kg based on Cui et al. (2008)
   BW_female <- 0.2
   # Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
   df_serum_male <- openxlsx::read.xlsx("serum_male.xlsx",  colNames = T, rowNames = F)
@@ -687,7 +687,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   )
   # fitted parameter values
   fitted_pars = optimizer$solution
-  save.image("fitted_model.RData")
+  save.image("Validation/fitted_model.RData")
   #Function for solving the ODEs given the solution of the GA and the optimisation problem
   solve_odes <- function(admin.type, admin.dose, BW, sex, fitted_pars, group,N_pars ){
     # Calculate PBK parameters
