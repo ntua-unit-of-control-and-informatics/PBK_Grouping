@@ -185,7 +185,7 @@ ga_fitness <- function(chromosome)
                   
                    "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                    "Free" = Free*parameter_values[5],
-                   'kdif' = kdif*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
+                   "kefflux" = kefflux*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
                    
                    "Prest" = Prest*CF[1], 
                    "Pgonads" = Pgonads*CF[1],
@@ -194,7 +194,7 @@ ga_fitness <- function(chromosome)
                    "Pintestine" = Pintestine*CF[1],
 
                     "k0" = k0*CF[2], 
-                   "kefflux" = kefflux*CF[3],"Vmax_baso" = Vmax_baso*CF[4],
+                  'kdif' = kdif*CF[3],"Vmax_baso" = Vmax_baso*CF[4],
                    
                    "admin.type" = admin.type,
                    "admin.time" = admin.time, "admin.dose" = admin.dose))
@@ -752,4 +752,4 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "Data/PFOA_GA_male_rat_6.RData")
+save.image(file = "Data/PFOA_GA_male_rat_7.RData")
