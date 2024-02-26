@@ -180,7 +180,8 @@ ga_fitness <- function(chromosome)
                    
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
                     "kbile" = kbile, "kurine" = kurine, 
-                   "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,"Vmax_apical" = Vmax_apical
+                   "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,
+                   "Vmax_apical" = Vmax_apical,
                   
                    "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                    "Free" = Free*parameter_values[5],
