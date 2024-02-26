@@ -344,11 +344,11 @@ ga_fitness <- function(chromosome)
       #Venous Plasma compartment
       dAven_free = Qrest*CVrest*Free + Qgonads*CVgonads*Free +  Qheart*CVheart*Free + Qbrain*CVbrain*Free +
         (Qkidney*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
-        (Qlung*Cven*Free)+ dAefflux #rate of change in the plasma (mg/h) 
+        (Qlung*Cven*Free) #rate of change in the plasma (mg/h) 
       
       #Arterial Plasma compartment
       dAart_free =  Qlung*CVlung*Free - Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
-                                                     Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)
+                          Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)+ dAefflux
       
       #Mass Balance Check
       Atissue = Aart_free +Aven_free+ Arest + Akidney_blood + Afil + APTC + Aliver + 
@@ -753,4 +753,4 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "Data/PFOA_GA_male_rat_8.RData")
+save.image(file = "Data/PFOA_GA_male_rat_9.RData")

@@ -181,7 +181,7 @@ ga_fitness <- function(chromosome)
                    "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
                     "kbile" = kbile, "kurine" = kurine, 
                    "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,
-                   "Vmax_apical" = Vmax_apical,
+                   
                   
                    "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                    "Free" = Free*parameter_values[5],
@@ -195,6 +195,7 @@ ga_fitness <- function(chromosome)
 
                     "k0" = k0*CF[2], 
                   'kdif' = kdif*CF[3],"Vmax_baso" = Vmax_baso*CF[4],
+                  "Vmax_apical" = Vmax_apical*CF[5],
                    
                    "admin.type" = admin.type,
                    "admin.time" = admin.time, "admin.dose" = admin.dose))
@@ -343,11 +344,11 @@ ga_fitness <- function(chromosome)
       #Venous Plasma compartment
       dAven_free = Qrest*CVrest*Free + Qgonads*CVgonads*Free +  Qheart*CVheart*Free + Qbrain*CVbrain*Free +
         (Qkidney*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
-        (Qlung*Cven*Free) #rate of change in the plasma (mg/h) 
+        (Qlung*Cven*Free)+ dAefflux #rate of change in the plasma (mg/h) 
       
       #Arterial Plasma compartment
       dAart_free =  Qlung*CVlung*Free - Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
-                Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)+ dAefflux
+                                                     Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)
       
       #Mass Balance Check
       Atissue = Aart_free +Aven_free+ Arest + Akidney_blood + Afil + APTC + Aliver + 
@@ -653,7 +654,7 @@ ga_fitness <- function(chromosome)
   
   #Initialise optimiser to NULL for better error handling later
   optimizer <- NULL
-  opts <- list( "algorithm" = "NLOPT_LN_SBPLX",#"NLOPT_LN_NEWUOA","NLOPT_LN_SBPLX"
+  opts <- list( "algorithm" = "NLOPT_LN_NEWUOA",#"NLOPT_LN_NEWUOA","NLOPT_LN_SBPLX"
                 "xtol_rel" = 1e-07,
                 "ftol_rel" = 0.0,
                 "ftol_abs" = 0.0,
@@ -729,7 +730,7 @@ ga_fitness <- function(chromosome)
 # gareal_rsMutation: Random mutation around the solution.
 
 setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-N_genes <- 4#number of total parameters to be included in the grouping process
+N_genes <- 5#number of total parameters to be included in the grouping process
 N_pars <- 5 # Number of parameters to be fitted
 start <- Sys.time()
 GA_results <- GA::ga(type = "real", fitness = ga_fitness, 
@@ -752,4 +753,4 @@ GA_results <- GA::ga(type = "real", fitness = ga_fitness,
                      seed = 231)
 stop <- Sys.time()
 print(paste0("Time ellapsed was ", stop-start))
-save.image(file = "Data/PFOA_GA_male_rat_7.RData")
+save.image(file = "Data/PFOA_GA_male_rat_9.RData")
