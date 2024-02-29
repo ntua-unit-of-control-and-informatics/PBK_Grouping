@@ -1,6 +1,7 @@
 library(deSolve)
 library(ggplot2)
-
+setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA")
+load("Data/PFOA_GA_male_rat.RData")
 #=========================
 #1. Parameters of the model
 #=========================
@@ -174,26 +175,26 @@ create.params  <- function(user_input){
                  "Vliverb" = Vliverb,
                  
                  "GFR" = GFR, "VPTC" = VPTC,"Km_baso" = Km_baso, "Km_apical" = Km_apical,
-                 "Vmax_apical" = Vmax_apical, "kbile" = kbile, "kurine" = kurine, 
-                 "kunabs" = kunabs, "GE" = GE,"Vmax_baso" = Vmax_baso,"Km_baso" = Km_baso,
-                 "Pstomach" =Pstomach, 
-                 "Pintestine" = Pintestine,
+                 "kbile" = kbile, "kurine" = kurine, 
+                 "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,
                  
                  "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                  "Free" = Free*parameter_values[5],
-                 "kefflux" = kefflux*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
+                 "Vmax_baso" = Vmax_baso*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
                  
                  "Prest" = Prest*CF[1], 
-                 "Pgonads" = Pgonads*CF[2],
-                 "Pspleen" = Pspleen*CF[3], "Pheart" = Pheart*CF[4],
-                 "Plung" = Plung*CF[5], 
+                 "Pgonads" = Pgonads*CF[1],
+                 "Pspleen" = Pspleen*CF[1], "Pheart" = Pheart*CF[1],
+                 "Plung" = Plung*CF[1],  "Pstomach" =Pstomach*CF[1], 
+                 "Pintestine" = Pintestine*CF[1],
                  
-                 "Vmax_baso" = Vmax_baso *CF[6], "k0" = k0*CF[7], 
-                 'kdif' = kdif**CF[8],
+                 "k0" = k0*CF[2], 
+                 "kefflux" = kefflux*CF[3],'kdif' = kdif*CF[4],
+                 "Vmax_apical" = Vmax_apical*CF[5],
+                 
                  
                  "admin.type" = admin.type,
-                 "admin.time" = admin.time, "admin.dose" = admin.dose))
-  })
+                 "admin.time" = admin.time, "admin.dose" = admin.dose))  })
 }
 
 #===============================================
@@ -338,11 +339,11 @@ ode.func <- function(time, inits, params, custom.func){
     #Venous Plasma compartment
     dAven_free = Qrest*CVrest*Free + Qgonads*CVgonads*Free +  Qheart*CVheart*Free + Qbrain*CVbrain*Free +
       (Qkidney*CVkidney*Free) + ((QL_hepatic_artery+Qspleen+Qstomach+Qintestine) *CVliver*Free) - 
-      (Qlung*Cven*Free)+ dAefflux #rate of change in the plasma (mg/h) 
+      (Qlung*Cven*Free) #rate of change in the plasma (mg/h) 
     
     #Arterial Plasma compartment
     dAart_free =  Qlung*CVlung*Free - Cart*Free*(Qrest+Qgonads+Qspleen+Qheart+
-                                                   Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)
+                                                   Qbrain+Qkidney+Qstomach+Qintestine+QL_hepatic_artery)+ dAefflux
     
     #Mass Balance Check
     Atissue = Aart_free +Aven_free+ Arest + Akidney_blood + Afil + APTC + Aliver + 
@@ -368,8 +369,12 @@ ode.func <- function(time, inits, params, custom.func){
          "Cfil" = Cfil, "CVliver" = CVliver, "Cart_free" = Cart_free,
          "Cart" = Cart, 
          "Cplasma_ven" = Aven_free/Vven_plasma/Free,
+         "Cplasma_art" = Aart_free/Vart_plasma/Free,
+         "Cliver" = Aliver /Vliver,
          "Cliver" = Aliver /Vliver,
          "Ckidneys" = (APTC+ Akidney_blood)/Vkidney,
+         "Ckidneys_fit" = APTC/Vkidney,
+         
          "Cbrain" = Abrain /Vbrain,
          "Cintestine" = Aintestine /Vintestine,
          "Ctestis" = Agonads/Vgonads,
@@ -494,7 +499,7 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #######################
   # Estimate the goodness-of-fit on the male tissues
   concentrations <- data.frame("time" = solution_oral_12$solution$time, 
-                               "Ckidneys" = solution_oral_12$solution$Ckidneys,
+                               "Ckidneys" = solution_oral_12$solution$Ckidneys_fit,
                                "Cliver" =solution_oral_12$solution$Cliver,
                                "Cbrain" = solution_oral_12$solution$Cbrain)
   
@@ -550,256 +555,271 @@ obj.func <- function(fitted_pars, group, serum_male, serum_indices_male,
   #   + discrepancy_tissues_female
   return(total_discrepancy)
 }
-  
-  # SODI function the returns the SODI index described in Tsiros et al.2024
-  # predictions: list of vectors containing the predicted data
-  # names of the compartments
-  
-  SODI <- function(observed, predicted, comp.names =NULL){
-    # Check if the user provided the correct input format
-    if (!is.list(observed) || !is.list(predicted)){
-      stop(" The observations and predictions must be lists")
-    }
-    # Check if the user provided equal length lists
-    if (length(observed) != length(predicted)){
-      stop(" The observations and predictions must have the same compartments")
-    }
-    Ncomp <- length(observed) # Number of compartments
-    I <- rep(NA, Ncomp) # Compartment discrepancy index
-    N_obs <- rep(NA, Ncomp) #Number of observations per compartment
-    #loop over the compartments
-    for (i in 1:Ncomp){
-      Et <- 0 #relative error with observations
-      St <- 0  #relative error with simulations
-      N <- length(observed[[i]]) # number of observations for compartment i
-      # Check if observations and predictions have equal length
-      if(N != length(predicted[[i]])){
-        stop(paste0("Compartment ",i," had different length in the observations and predictions"))
-      }
-      N_obs[i] <- N # populate the N_obs vector
-      for (j in 1:N){
-        # sum of relative squared errors (error = observed - predicted)
-        Et <- Et + ( abs(observed[[i]][j] - predicted[[i]][j])  / observed[[i]][j] )  ^2
-        St <- St + ( abs(observed[[i]][j] - predicted[[i]][j])  / predicted[[i]][j] )  ^2
-      }
-      
-      # root mean of the square of observed values
-      RMEt <- sqrt(Et/N)
-      # root mean of the square of simulated values
-      RMSt <- sqrt( St/N)
-      
-      I[i] <- (RMEt + RMSt)/2   
-    }
-    # Total number of observations
-    Ntot <- sum(N_obs)
-    # Initialise the consolidated discrepancy index
-    Ic <-0
-    for (i in 1:Ncomp){
-      # Give weight to compartments with more observations (more information)
-      Ic <- Ic +  I[i]* N_obs[i]/Ntot
-    }
-    # Name the list of compartment discrepancy indices
-    if ( !is.null(comp.names)){
-      names(I) <- comp.names
-    }else if (!is.null(names(observed))){
-      names(I) <- names(observed)
-    } else if (!is.null(names(predicted)) && is.null(comp.names) ){
-      names(I) <- names(predicted)
-    }
-    return(Ic)
-    #return(list(Total_index = Ic, Compartment_index= I))
+
+# SODI function the returns the SODI index described in Tsiros et al.2024
+# predictions: list of vectors containing the predicted data
+# names of the compartments
+
+SODI <- function(observed, predicted, comp.names =NULL){
+  # Check if the user provided the correct input format
+  if (!is.list(observed) || !is.list(predicted)){
+    stop(" The observations and predictions must be lists")
   }
-  #==============================
-  #5. Decode chromosomes  
-  #==============================
-  # Function for decoding the GA output. Simply, we take the floor of the continuous number
-  decode_ga_real <- function(real_num){ 
-    CF <- rep(NA, length(real_num))
-    # Grouping of correctin factors
-    for (i in 1:length(CF)){
-      CF[i] <-  floor(real_num[i])
+  # Check if the user provided equal length lists
+  if (length(observed) != length(predicted)){
+    stop(" The observations and predictions must have the same compartments")
+  }
+  Ncomp <- length(observed) # Number of compartments
+  I <- rep(NA, Ncomp) # Compartment discrepancy index
+  N_obs <- rep(NA, Ncomp) #Number of observations per compartment
+  #loop over the compartments
+  for (i in 1:Ncomp){
+    Et <- 0 #relative error with observations
+    St <- 0  #relative error with simulations
+    N <- length(observed[[i]]) # number of observations for compartment i
+    # Check if observations and predictions have equal length
+    if(N != length(predicted[[i]])){
+      stop(paste0("Compartment ",i," had different length in the observations and predictions"))
+    }
+    N_obs[i] <- N # populate the N_obs vector
+    for (j in 1:N){
+      # sum of relative squared errors (error = observed - predicted)
+      Et <- Et + ( abs(observed[[i]][j] - predicted[[i]][j])  / observed[[i]][j] )  ^2
+      St <- St + ( abs(observed[[i]][j] - predicted[[i]][j])  / predicted[[i]][j] )  ^2
     }
     
-    return(CF)
-  }
-  #===============
-  # Load data  
-  #===============
-  setwd("C:/Users/user/Documents/GitHub/PBK_Grouping/PFOA")
-  load("Data/PFOA_GA_male_rat.RData")
-  MW = 414.07	#PFOA molecular mass (g/mol)
-  BW_male <- 0.2#kg based on Cui et al. (2008)
-  BW_female <- 0.2
-  # Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
-  df_serum_male <- openxlsx::read.xlsx("serum_male.xlsx",  colNames = T, rowNames = F)
-  df_tissue_male <- openxlsx::read.xlsx("tissue_male.xlsx", colNames = T, rowNames = F)
-  df_serum_female <- openxlsx::read.xlsx("serum_female.xlsx",  colNames = T, rowNames = F)
-  df_tissue_female <- openxlsx::read.xlsx("tissue_female.xlsx", colNames = T, rowNames = F)
-  #Rename columns for easier handling
-  colnames(df_serum_male) <- c("Time", "Mass", "Dose", "Type")
-  colnames(df_tissue_male) <- c("Time", "Mass", "Dose", "Tissue")
-  colnames(df_serum_female) <- c("Time", "Mass", "Dose", "Type")
-  colnames(df_tissue_female) <- c("Time", "Mass", "Dose", "Tissue")
-  
-  #Transform microMolar to mg/L
-  df_serum_male$Mass <- df_serum_male$Mass*MW/1000
-  df_tissue_male$Mass <- df_tissue_male$Mass*MW/1000
-  df_serum_female$Mass <- df_serum_female$Mass*MW/1000
-  df_tissue_female$Mass <- df_tissue_female$Mass*MW/1000
-  
-  #Decode the chromosome of the genetic algorithm
-  group <- decode_ga_real(GA_results@solution[1,])
-  
-  #Initialise optimiser to NULL for better error handling later
-  optimizer <- NULL
-  opts <- list( "algorithm" = "NLOPT_LN_NEWUOA",
-                "xtol_rel" = 1e-09,
-                "ftol_rel" = 0.0,
-                "ftol_abs" = 0.0,
-                "xtol_abs" = 0.0 ,
-                "maxeval" = 1000,
-                "print_level" = 1)
-  # Create initial conditions (zero initialisation)
-  inits <- create.inits(list(NULL))
-  N_pars <- 5 # Number of parameters to be fitted
- 
-  fit <- log(rep(1,N_pars))
-  try(
-    # Run the optimization algorithmm to estimate the parameter values
-    optimizer <- nloptr::nloptr( x0= fit,
-                                 eval_f = obj.func,
-                                 lb	= rep(log(0.1), N_pars),
-                                 ub = rep(log(10), N_pars),
-                                 opts = opts,
-                                 group = group,
-                                 serum_male = df_serum_male,
-                                 serum_indices_male = c(13,23,33),# index where dose changes
-                                 tissue_male = df_tissue_male,
-                                 tissue_indices_male = c(8,14),# index where tissue changes
-                                 serum_female = df_serum_female,
-                                 serum_indices_female = c(10,19,29),
-                                 tissue_female = df_tissue_female,
-                                 tissue_indices_female = c(6,11),
-                                 inits = inits,
-                                 N_pars = N_pars), 
+    # root mean of the square of observed values
+    RMEt <- sqrt(Et/N)
+    # root mean of the square of simulated values
+    RMSt <- sqrt( St/N)
     
-    silent = TRUE
+    I[i] <- (RMEt + RMSt)/2   
+  }
+  # Total number of observations
+  Ntot <- sum(N_obs)
+  # Initialise the consolidated discrepancy index
+  Ic <-0
+  for (i in 1:Ncomp){
+    # Give weight to compartments with more observations (more information)
+    Ic <- Ic +  I[i]* N_obs[i]/Ntot
+  }
+  # Name the list of compartment discrepancy indices
+  if ( !is.null(comp.names)){
+    names(I) <- comp.names
+  }else if (!is.null(names(observed))){
+    names(I) <- names(observed)
+  } else if (!is.null(names(predicted)) && is.null(comp.names) ){
+    names(I) <- names(predicted)
+  }
+  return(Ic)
+  #return(list(Total_index = Ic, Compartment_index= I))
+}
+#==============================
+#5. Decode chromosomes  
+#==============================
+# Function for decoding the GA output. Simply, we take the floor of the continuous number
+decode_ga_real <- function(real_num){ 
+  CF <- rep(NA, length(real_num))
+  # Grouping of correctin factors
+  for (i in 1:length(CF)){
+    CF[i] <-  floor(real_num[i])
+  }
+  
+  return(CF)
+}
+#===============
+# Load data  
+#===============
+
+MW = 414.07	#PFOA molecular mass (g/mol)
+BW_male <- 0.2#kg based on Cui et al. (2008)
+BW_female <- 0.2
+# Load raw data from paper Kreyling et al.2017, which are given in %ID/g tissue
+df_serum_male <- openxlsx::read.xlsx("Data/Dzierlenga_serum_male.xlsx",  colNames = T, rowNames = F)
+df_tissue_male <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_male.xlsx", colNames = T, rowNames = F)
+df_serum_female <- openxlsx::read.xlsx("Data/Dzierlenga_serum_female.xlsx",  colNames = T, rowNames = F)
+df_tissue_female <- openxlsx::read.xlsx("Data/Dzierlenga_tissue_female.xlsx", colNames = T, rowNames = F)
+#Rename columns for easier handling
+colnames(df_serum_male) <- c("Time", "Mass", "Dose", "Type")
+colnames(df_tissue_male) <- c("Time", "Mass", "Dose", "Tissue")
+colnames(df_serum_female) <- c("Time", "Mass", "Dose", "Type")
+colnames(df_tissue_female) <- c("Time", "Mass", "Dose", "Tissue")
+
+#Transform microMolar to mg/L
+df_serum_male$Mass <- df_serum_male$Mass*MW/1000
+df_tissue_male$Mass <- df_tissue_male$Mass*MW/1000
+df_serum_female$Mass <- df_serum_female$Mass*MW/1000
+df_tissue_female$Mass <- df_tissue_female$Mass*MW/1000
+
+#Decode the chromosome of the genetic algorithm
+group <- decode_ga_real(GA_results@solution[1,])
+
+#Initialise optimiser to NULL for better error handling later
+optimizer <- NULL
+opts <- list( "algorithm" = "NLOPT_LN_SBPLX",#"NLOPT_LN_NEWUOA",
+              "xtol_rel" = 1e-09,
+              "ftol_rel" = 0.0,
+              "ftol_abs" = 0.0,
+              "xtol_abs" = 0.0 ,
+              "maxeval" = 400,
+              "print_level" = 1)
+# Create initial conditions (zero initialisation)
+inits <- create.inits(list(NULL))
+N_pars <- 5 # Number of parameters to be fitted
+
+fit <- log(rep(1,N_pars))
+try(
+  # Run the optimization algorithmm to estimate the parameter values
+  optimizer <- nloptr::nloptr( x0= fit,
+                               eval_f = obj.func,
+                               lb	= rep(log(0.01), N_pars),
+                               ub = rep(log(20), N_pars),
+                               opts = opts,
+                               group = group,
+                               serum_male = df_serum_male,
+                               serum_indices_male = c(13,23,33),# index where dose changes
+                               tissue_male = df_tissue_male,
+                               tissue_indices_male = c(8,14),# index where tissue changes
+                               serum_female = df_serum_female,
+                               serum_indices_female = c(10,19,29),
+                               tissue_female = df_tissue_female,
+                               tissue_indices_female = c(6,11),
+                               inits = inits,
+                               N_pars = N_pars), 
+  
+  silent = TRUE
+)
+# fitted parameter values
+fitted_pars = optimizer$solution
+save.image("Validation/fitted_model.RData")
+#Function for solving the ODEs given the solution of the GA and the optimisation problem
+solve_odes <- function(admin.type, admin.dose, BW, sex, fitted_pars, group,N_pars ){
+  # Calculate PBK parameters
+  parameters <- create.params( list("BW" = BW  , sex = sex, 
+                                    "admin.type" = admin.type,
+                                    "admin.time" = 0.01, "admin.dose" = admin.dose,
+                                    "fitted_pars" = fitted_pars, "group" = group, 
+                                    "N_pars" = N_pars ))
+  events <- create.events(parameters)
+  # Structure the in silico time vector in a way that the sampling time points are included
+  if(sex == "F"){
+    sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
+                     seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
+                     seq(0.3,  0.9, 0.1), seq(1,23,1),
+                     seq(24,196 , 4))
+  }else if(sex == "M"){
+    sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
+                     seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
+                     seq(0.3,  0.9, 0.1), seq(1,23,1),
+                     seq(24, 192, 4), seq(196, 516,16), 528, seq(540, 860,16),
+                     864, seq(880, 1200,32))
+  }else(
+    stop(" Provide a valid sex. Chose between 'F' or 'M'")
   )
-  # fitted parameter values
-  fitted_pars = optimizer$solution
-  save.image("Validation/fitted_model.RData")
-  #Function for solving the ODEs given the solution of the GA and the optimisation problem
-  solve_odes <- function(admin.type, admin.dose, BW, sex, fitted_pars, group,N_pars ){
-    # Calculate PBK parameters
-    parameters <- create.params( list("BW" = BW  , sex = sex, 
-                                      "admin.type" = admin.type,
-                                      "admin.time" = 0.01, "admin.dose" = admin.dose,
-                                      "fitted_pars" = fitted_pars, "group" = group, 
-                                      "N_pars" = N_pars ))
-    events <- create.events(parameters)
-    # Structure the in silico time vector in a way that the sampling time points are included
-    if(sex == "F"){
-      sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
-                       seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
-                       seq(0.3,  0.9, 0.1), seq(1,23,1),
-                       seq(24,196 , 4))
-    }else if(sex == "M"){
-      sample_time <- c(0,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5, 1e-4, 1e-3,
-                       seq(0.01,0.08, 0.001), 0.083, 0.1, 0.2, 0.25, 
-                       seq(0.3,  0.9, 0.1), seq(1,23,1),
-                       seq(24, 192, 4), seq(196, 516,16), 528, seq(540, 860,16),
-                       864, seq(880, 1200,32))
-    }else(
-      stop(" Provide a valid sex. Chose between 'F' or 'M'")
-    )
-    solution <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
-                                        y = inits, parms = parameters, events = events,
-                                        method="lsodes",rtol = 1e-7, atol = 1e-7))
-    return(solution)
-  }
-  BW <- BW_male
-  #Acquire solutions for the different exposure scenarios
-  solution_iv_6_male <- solve_odes(admin.type = unique(df_serum_male$Type)[1],
+  solution <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
+                                      y = inits, parms = parameters, events = events,
+                                      method="lsodes",rtol = 1e-7, atol = 1e-7))
+  return(solution)
+}
+BW <- BW_male
+#Acquire solutions for the different exposure scenarios
+solution_iv_6_male <- solve_odes(admin.type = unique(df_serum_male$Type)[1],
                                  admin.dose = BW*unique(df_serum_male$Dose)[1], 
                                  BW = BW, sex = "M", fitted_pars = fitted_pars,
                                  group = group, "N_pars" = N_pars)
-  solution_oral_6_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
+solution_oral_6_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
                                    admin.dose = BW*unique(df_serum_male$Dose)[1], 
-                                BW = BW, sex = "M", fitted_pars = fitted_pars, 
-                                group = group, "N_pars" = N_pars)
-  solution_oral_12_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
-                                 admin.dose = BW*unique(df_serum_male$Dose)[2], 
-                                 BW = BW, sex = "M", fitted_pars = fitted_pars, 
-                                 group = group, "N_pars" = N_pars)
-  solution_oral_48_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
+                                   BW = BW, sex = "M", fitted_pars = fitted_pars, 
+                                   group = group, "N_pars" = N_pars)
+solution_oral_12_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
+                                    admin.dose = BW*unique(df_serum_male$Dose)[2], 
+                                    BW = BW, sex = "M", fitted_pars = fitted_pars, 
+                                    group = group, "N_pars" = N_pars)
+solution_oral_48_male <- solve_odes(admin.type = unique(df_serum_male$Type)[2],
                                     admin.dose = BW*unique(df_serum_male$Dose)[3], 
-                                 BW = BW, sex = "M", fitted_pars = fitted_pars,
-                                 group = group, "N_pars" = N_pars)
-  
-  serum_predictions <- data.frame(Time = rep(solution_iv_6_male$time,4), value = c(solution_iv_6_male$Cplasma,
-                      solution_oral_6_male$Cplasma, solution_oral_12_male$Cplasma, 
-                      solution_oral_48_male$Cplasma), dose = c(rep("dose1-iv", dim(solution_iv_6_male)[1]),
-                                                       rep("dose1-oral", dim(solution_iv_6_male)[1]),
-                                                       rep("dose2-oral", dim(solution_iv_6_male)[1]),
-                                                       rep("dose3-oral", dim(solution_iv_6_male)[1])))
-  serum_predictions <- serum_predictions[serum_predictions$value != 0 ,]
-  df_serum_male$dose_to_plot <- rep(NA, dim(df_serum_male)[1])
-  for (i in 1:dim(df_serum_male)[1]){
-      if (df_serum_male[i,"Type"] == "iv"){
-        df_serum_male[i,"dose_to_plot"] <- "dose1-iv"
-      }else if(df_serum_male[i,"Dose"] == 6){
-        df_serum_male[i,"dose_to_plot"] <- "dose1-oral"
-      }else if(df_serum_male[i,"Dose"] == 12){
-        df_serum_male[i,"dose_to_plot"] <- "dose2-oral"
-      }else if(df_serum_male[i,"Dose"] == 48){
-        df_serum_male[i,"dose_to_plot"] <- "dose3-oral"
-      }
-  }
-    
-  library(ggplot2)
-  
-  # Defining the linetype and colour of each curve
-  ltp <- c("dose1-iv" = "twodash", "dose1-oral" = "solid", "dose2-oral" = "dotted","dose3-oral" = "dashed",
-           "Liver" = "twodash", "Kidneys" = "solid","Brain" = "dotted" )
-  cls <-  c("dose1-iv" = "#56B4E9",  "dose1-oral" ="#000000", "dose2-oral" = "#009E73", 
-            "dose3-oral" ="#CC79A7",
-            "Liver" = "#CC79A7", "Kidneys" = "#000000","Brain" = "#56B4E9")
+                                    BW = BW, sex = "M", fitted_pars = fitted_pars,
+                                    group = group, "N_pars" = N_pars)
 
-    ggplot(data = serum_predictions)+
-      geom_line(aes(x = Time, y = value, color = dose, linetype = dose), size = 1.5, alpha = 0.7) +
-      geom_point(data = df_serum_male, aes(x = Time, y = Mass, color = dose_to_plot), size = 4) +
-      coord_cartesian(ylim = c(1, 1000))+
-      labs(y = "Concentration (mg/L)",x = "Time (hours)")+
-      theme(plot.title = element_text(hjust = 0.5))+
-      scale_y_log10()+
-      scale_color_manual("", values=cls)+
-      scale_linetype_manual("", values=ltp) +
-      theme(legend.key.size = unit(1.5, 'cm'),  
-            legend.title = element_text(size=14),
-            axis.title=element_text(size=14),
-            legend.text = element_text(size=14))
-    
-    tissue_predictions <- data.frame(Time = rep(solution_oral_12_male$time,3), 
-                                     value = c(solution_oral_12_male$Cliver,
-                                               solution_oral_12_male$Ckidneys, 
-                                               solution_oral_12_male$Cbrain),
-                                     Tissue = c(rep("Liver", dim(solution_oral_12_male)[1]),
-                                      rep("Kidneys", dim(solution_oral_12_male)[1]),
-                                      rep("Brain", dim(solution_oral_12_male)[1])))  
-    
-    tissue_predictions <- tissue_predictions[tissue_predictions$value != 0 ,]
-    ggplot(data = tissue_predictions)+
-      geom_line(aes(x = Time, y = value, color = Tissue, linetype = Tissue), size = 1.5, alpha = 0.7) +
-      geom_point(data = df_tissue_male, aes(x = Time, y = Mass, color = Tissue), size = 4) +
-      labs(y = "Concentration (mg/L)",x = "Time (hours)")+
-      theme(plot.title = element_text(hjust = 0.5))+
-      scale_y_log10()+
-      coord_cartesian(ylim = c(0.1, 100))+
-      scale_color_manual("", values=cls)+
-      scale_linetype_manual("", values=ltp) +
-      theme(legend.key.size = unit(1.5, 'cm'),  
-            legend.title = element_text(size=14),
-            axis.title=element_text(size=14),
-            legend.text = element_text(size=14))
-    
-    
+serum_predictions <- data.frame(Time = rep(solution_iv_6_male$time,4), value = c(solution_iv_6_male$Cplasma_ven,
+                                                                                 solution_oral_6_male$Cplasma_ven, solution_oral_12_male$Cplasma_ven, 
+                                                                                 solution_oral_48_male$Cplasma_ven), dose = c(rep("6mg/kg | iv", dim(solution_iv_6_male)[1]),
+                                                                                                                              rep("6mg/kg | oral", dim(solution_iv_6_male)[1]),
+                                                                                                                              rep("12mg/kg | oral", dim(solution_iv_6_male)[1]),
+                                                                                                                              rep("48mg/kg | oral", dim(solution_iv_6_male)[1])))
+serum_predictions <- serum_predictions[serum_predictions$value != 0 ,]
+df_serum_male$dose_to_plot <- rep(NA, dim(df_serum_male)[1])
+for (i in 1:dim(df_serum_male)[1]){
+  if (df_serum_male[i,"Type"] == "iv"){
+    df_serum_male[i,"dose_to_plot"] <- "6mg/kg | iv"
+  }else if(df_serum_male[i,"Dose"] == 6){
+    df_serum_male[i,"dose_to_plot"] <- "6mg/kg | oral"
+  }else if(df_serum_male[i,"Dose"] == 12){
+    df_serum_male[i,"dose_to_plot"] <- "12mg/kg | oral"
+  }else if(df_serum_male[i,"Dose"] == 48){
+    df_serum_male[i,"dose_to_plot"] <- "48mg/kg | oral"
+  }
+}
+
+library(ggplot2)
+
+# Defining the linetype and colour of each curve
+cls <-  c("6mg/kg | iv" = "#56B4E9",  "6mg/kg | oral" ="#000000", "12mg/kg | oral" = "#009E73", 
+          "48mg/kg | oral" ="#CC79A7",
+          "Liver" = "#CC79A7", "Kidneys" = "#000000","Brain" = "#56B4E9")
+
+plot1 <-  ggplot(data = serum_predictions)+
+  geom_line(aes(x = Time, y = value, color = dose), size = 1.5, alpha = 0.7) +
+  geom_point(data = df_serum_male, aes(x = Time, y = Mass, color = dose_to_plot), size = 4) +
+  coord_cartesian(ylim = c(1, 350))+
+  labs(y = "Concentration (mg/L)",x = "Time (hours)")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme_light() + 
+  # scale_y_log10()+
+  scale_color_manual("Treatment", values=cls)+
+  theme(  legend.justification = "top" ,
+          legend.key.size = unit(1.5, 'cm'),  
+          legend.title = element_text(size=14),
+          legend.text = element_text(size=12),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 18),
+          plot.margin=grid::unit(c(0.25,0.25,0.25,0.25), "cm"))
+
+# Save the plot with dynamically adjusted dimensions
+ggsave("fit_on_serum.png", plot = plot1,
+       device = 'png', dpi = 300,
+       width = 11,
+       height = 7,
+       units = "in")
+
+tissue_predictions <- data.frame(Time = rep(solution_oral_12_male$time,3), 
+                                 value = c(solution_oral_12_male$Cliver,
+                                           solution_oral_12_male$Ckidneys_fit, 
+                                           solution_oral_12_male$Cbrain),
+                                 Tissue = c(rep("Liver", dim(solution_oral_12_male)[1]),
+                                            rep("Kidneys", dim(solution_oral_12_male)[1]),
+                                            rep("Brain", dim(solution_oral_12_male)[1])))  
+
+tissue_predictions <- tissue_predictions[tissue_predictions$value != 0 ,]
+
+plot2 <- ggplot(data = tissue_predictions)+
+  geom_line(aes(x = Time, y = value, color = Tissue), size = 1.5, alpha = 0.7) +
+  geom_point(data = df_tissue_male, aes(x = Time, y = Mass, color = Tissue), size = 4) +
+  labs(y = "Concentration (mg/L)",x = "Time (hours)")+
+  theme_light() + 
+  scale_y_log10()+
+  coord_cartesian(ylim = c(0.1, 200))+
+  scale_color_manual("Tissue", values=cls)+
+  theme(  legend.justification = "top" ,
+          legend.key.size = unit(1.5, 'cm'),  
+          legend.title = element_text(size=14),
+          legend.text = element_text(size=12),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 18),
+          plot.margin=grid::unit(c(0.25,0.25,0.25,0.25), "cm"))
+
+ggsave("fit_on_tissue.png", plot = plot2,
+       device = 'png', dpi = 300,
+       width = 11,
+       height = 7,
+       units = "in")
+

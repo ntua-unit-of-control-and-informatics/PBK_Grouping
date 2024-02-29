@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
@@ -72,5 +72,5 @@ results_df_20<- data.frame("Study" = "Cui_2010", "Dose" =  tissues_20$Dose_mg_pe
 results_df <- rbind(results_df_5, results_df_20)
 
 write.csv(results_df,
-          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2008_results.csv",
+          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Cui_2008_results.csv",
           row.names =F)

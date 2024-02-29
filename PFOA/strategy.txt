@@ -1,7 +1,0 @@
-1. fitness = -2.29, selection = "gareal_rwSelection", crossover = "gareal_blxCrossover",mutation = "gareal_raMutation"
-<<<<<<< Updated upstream
-2.  fitness = -2.29, selection = gareal_lrSelection, crossover = "gareal_blxCrossover",mutation = "gareal_raMutation",
-3.  fitness =  	    ,selection = gareal_lrSelection, crossover = "gareal_spCrossoverr",mutation = "gareal_raMutation",
-=======
-2.  selection = gareal_lrSelection, crossover = "gareal_blxCrossover",mutation = "gareal_raMutation",
->>>>>>> Stashed changes

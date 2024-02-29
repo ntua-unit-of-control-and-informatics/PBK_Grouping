@@ -1,5 +1,6 @@
 library(deSolve)
-setwd("/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation")
+library(ggplot2)
+setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation")
 
 #===============
 # Generate predictions
@@ -71,5 +72,5 @@ results_df_oral<- data.frame("Study" = "Kim", "Dose" =  tissues_oral$Dose_mg_per
 results_df <- rbind(results_df_iv, results_df_oral)
 
 write.csv(results_df,
-          "/Users/user/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kim_results.csv",
+          "/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_results/Kim_results.csv",
           row.names =F)

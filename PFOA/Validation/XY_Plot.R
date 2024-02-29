@@ -4,8 +4,8 @@ setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_res
 column_names <- c("Study",	"Dose",	"Tissue",	"Type",	"Observed",	"Predicted")
 
 # Load Results 
-Cui_results <- read.csv("Cui_2008_results.csv", header = T)
-Cui_low <- Cui_results[Cui_results$Dose == 5, ]
+'Cui_results <- read.csv("Cui_2008_results.csv", header = T)
+'Cui_low <- Cui_results[Cui_results$Dose == 5, ]
 Cui_low$Experiment <- "Cui | 5mg/kg | oral"
 Cui_high <- Cui_results[Cui_results$Dose == 20, ]
 Cui_high$Experiment <- "Cui | 20mg/kg | oral"
@@ -29,7 +29,7 @@ names(Tissue_markers) <- c( "Lung",   "Spleen",  "Liver",   "Kidney", "Plasma", 
                             "Brain","Testis", "Stomach", "Intestines", "Carcass")
 
 Experiment <- scales::hue_pal()(6)
-Experiment <- c("#009E73", "#E69F00", "#56B4E9", "#CC79A7", "#000000", "#009E73")
+Experiment <- c("#009E73", "#E69F00", "#56B4E9", "#CC79A7", "#000000", "#D55E00")
 
 names(Experiment) <- unique(c(Cui_low$Experiment, Cui_high$Experiment,
                               Kudo_low$Experiment,   Kudo_high$Experiment,
@@ -50,17 +50,7 @@ scatter_plot <- ggplot()+
   scale_x_log10()+
   
   scale_color_manual(values = Experiment)+
-                    # labels = c(#expression("Disdier et al. (2015), Dose = 215 " * mu* "g"),
-                    #            str_wrap("Disdier et al. (2015): Dose = 215 \u03BCg", 25),
-                    #            #expression("Fabian et al. (2008), Dose = 1250 " * mu* "g"),
-                    #            str_wrap("Fabian et al. (2008): Dose = 1250 \u03BCg", 25),
-                    #            
-                    #            #expression(paste("Dose = \n215 " , mu, "g")),
-                    #            str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 5 Doses", 25),
-                    #            #expression("Garaets et al. (2014), Dose = 2300 " * mu* "g x 1 Dose")
-                    #            str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 1 Dose", 25)
-                    #          )
-
+                  
   theme(legend.spacing.y = unit(1, 'cm')) +
   guides(fill = guide_legend(byrow = TRUE))+
   
@@ -69,7 +59,7 @@ scatter_plot <- ggplot()+
   labs(y = "Predicted PFOA (mg/L tissue)",
        x = "Observed PFOA ( mg/L tissue)")+
   theme(plot.title = element_text(hjust = 0.5),
-        legend.key.size = unit(1.0, 'cm'),  
+        legend.key.size = unit(0.75, 'cm'),  
         legend.title = element_text(size=14),
         legend.text = element_text(size=12,  hjust = 0),
         axis.text = element_text(size = 14),
@@ -78,6 +68,6 @@ scatter_plot <- ggplot()+
 
 print(scatter_plot)
 
-ggsave("validation_plot.png", scatter_plot, width = 11, height = 7, units = "in", dpi = 400)
+ggsave("validation_plot_PFOA.png", scatter_plot, width = 11, height = 7, units = "in", dpi = 300)
 
 

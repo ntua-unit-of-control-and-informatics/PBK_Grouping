@@ -1,6 +1,6 @@
 library(ggplot2)
-
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data")
+library(stringr) 
+setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results")
 column_names <- c('Study', 'NM Size', 'Anatase %', 'Rutile %', 'Dose',
                   'Injections',  'Tissue', 'Observed',   'Predicted')
 
@@ -66,14 +66,14 @@ scatter_plot <- ggplot()+
   
   scale_color_manual(values = Experiment,
                     labels = c(#expression("Disdier et al. (2015), Dose = 215 " * mu* "g"),
-                               str_wrap("Disdier et al. (2015): Dose = 215 \u03BCg", 25),
+                               str_wrap("Disdier | 215 \u03BCg", 25),
                                #expression("Fabian et al. (2008), Dose = 1250 " * mu* "g"),
-                               str_wrap("Fabian et al. (2008): Dose = 1250 \u03BCg", 25),
+                               str_wrap("Fabian | 1250 \u03BCg", 25),
                                
                                #expression(paste("Dose = \n215 " , mu, "g")),
-                               str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 5 Doses", 25),
+                               str_wrap("Garaets | 2300 \u03BCg x 5", 25),
                                #expression("Garaets et al. (2014), Dose = 2300 " * mu* "g x 1 Dose")
-                               str_wrap("Garaets et al. (2014): Dose = 2300 \u03BCg x 1 Dose", 25)
+                               str_wrap("Garaets | 2300 \u03BCg x 1", 25)
                              )
                      )+
   
@@ -94,6 +94,6 @@ scatter_plot <- ggplot()+
 
 print(scatter_plot)
 
-ggsave("validation_plot.png", scatter_plot, width = 11, height = 7, units = "in", dpi = 400)
+ggsave("validation_plot.png", scatter_plot, width = 11, height = 7, units = "in", dpi = 300)
 
 
