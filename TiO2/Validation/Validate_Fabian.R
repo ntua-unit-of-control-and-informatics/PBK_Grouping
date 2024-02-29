@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation")
+setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation")
 
 
 #####################################
@@ -89,24 +89,24 @@ create.params <- function(user_input){
     skeleton_expw <- mean(c(26.15, 27.50, 25.56, 25.79, 25.26))
     soft_tissues <- mean(c(228.57, 253.85, 214.29, 225.93, 231.04))
     
-    ### Calculation of tissue weights  
-    W_tis[2] <- heart_expw
-    W_tis[3] <- kidneys_expw
-    W_tis[5] <- spleen_expw
-    W_tis[6] <- lungs_expw
-    W_tis[7] <- liver_expw
-    W_tis[9] <- skeleton_expw
-    W_tis[13] <- Tissue_fractions[13]*mass
-    
+    # ### Calculation of tissue weights  
+    # W_tis[2] <- heart_expw
+    # W_tis[3] <- kidneys_expw
+    # W_tis[5] <- spleen_expw
+    # W_tis[6] <- lungs_expw
+    # W_tis[7] <- liver_expw
+    # W_tis[9] <- skeleton_expw
+    # W_tis[13] <- Tissue_fractions[13]*mass
+    # 
     
     for (i in 1:length(comp_names)) {
       control <- comp_names[i]
       
       Regional_flow_fractions[i] <- ifelse(is.na(control), NA, Regional_flow_fractions[i])
       Capillary_fractions[i] <- ifelse(is.na(control), NA, Capillary_fractions[i])
-      
+      Tissue_fractions[i] <- ifelse(is.na(control), NA, Tissue_fractions[i])
       ###Calculation of tissue volumes
-      
+      W_tis[i] <- mass*Tissue_fractions[i]
       if (i==9){
         V_tis[i] <- W_tis[i]/d_skeleton
       } else if(i==10){
@@ -153,7 +153,6 @@ create.params <- function(user_input){
     ))
   })
 }
-
 
 #===============================================
 #2. Function to create initial values for ODEs 
@@ -458,5 +457,5 @@ for (j in 2:dim(mean_values)[2]) {
 results_df <- results_df[-1,]
 
 write.csv(results_df,
-          "/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data/Fabian_results.csv",
+          "/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results/Fabian_results.csv",
           row.names =F)

@@ -4,8 +4,8 @@ setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA/Validation/Validation_res
 column_names <- c("Study",	"Dose",	"Tissue",	"Type",	"Observed",	"Predicted")
 
 # Load Results 
-'Cui_results <- read.csv("Cui_2008_results.csv", header = T)
-'Cui_low <- Cui_results[Cui_results$Dose == 5, ]
+Cui_results <- read.csv("Cui_2008_results.csv", header = T)
+Cui_low <- Cui_results[Cui_results$Dose == 5, ]
 Cui_low$Experiment <- "Cui | 5mg/kg | oral"
 Cui_high <- Cui_results[Cui_results$Dose == 20, ]
 Cui_high$Experiment <- "Cui | 20mg/kg | oral"

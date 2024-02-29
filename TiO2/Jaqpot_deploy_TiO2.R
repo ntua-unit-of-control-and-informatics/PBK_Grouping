@@ -7,150 +7,150 @@ setwd("C:/Users/ptsir/Documents/GitHub/PBPK_Genetic_Algorithm/Kreyling/NLOPTR")
 #####################################
 create.params <- function(user_input){
   with( as.list(user_input),{
-  ### Important!!! each compartment has a specific index vectors Tissue_fractions, Regional_flow_fractions, Capillary_fractions and cannot be changed
-  # The index of each compartment:
-  #Rest of Body (rob) --> 1
-  #Heart (ht) --> 2
-  #Kidneys (ki) --> 3
-  #Brain (br) --> 4
-  #Spleen (spl) --> 5
-  #Lungs (lu) --> 6
-  #Liver (li) --> 7
-  #Uterus (ut) --> 8
-  #Bone (bone) --> 9
-  #Adipose (ad) --> 10
-  #Skin (skin) --> 11
-  #Muscles (mu) --> 12
-  #Gastrointestinal track (GIT) --> 13
-  
-  
-  comp_names <- list( "RoB"="RoB","Heart"="Heart", "Kidneys"="Kidneys", "Brain"= NA, "Spleen"="Spleen",
+    ### Important!!! each compartment has a specific index vectors Tissue_fractions, Regional_flow_fractions, Capillary_fractions and cannot be changed
+    # The index of each compartment:
+    #Rest of Body (rob) --> 1
+    #Heart (ht) --> 2
+    #Kidneys (ki) --> 3
+    #Brain (br) --> 4
+    #Spleen (spl) --> 5
+    #Lungs (lu) --> 6
+    #Liver (li) --> 7
+    #Uterus (ut) --> 8
+    #Bone (bone) --> 9
+    #Adipose (ad) --> 10
+    #Skin (skin) --> 11
+    #Muscles (mu) --> 12
+    #Gastrointestinal track (GIT) --> 13
+    
+    
+    comp_names <- list( "RoB"="RoB","Heart"="Heart", "Kidneys"="Kidneys", "Brain"= NA, "Spleen"="Spleen",
                         "Lungs"="Lungs", "Liver"="Liver", "Uterus"=NA, "Bone"="Bone", "Adipose"=NA, "Skin"=NA,
-                      "Muscles"=NA, "GIT"="GIT") #used as input in function, compartments that are used in pbpk
-  
-  
-  # List with names of all possible compartments
-  all_comps <- list("RoB"="RoB","Heart"="Heart", "Kidneys"="Kidneys", "Brain"="Brain", "Spleen"="Spleen",
-                    "Lungs"="Lungs", "Liver"="Liver", "Uterus"="Uterus", "Bone"="Bone", "Adipose"="Adipose", "Skin"="Skin", "Muscles"="Muscles",
-                    "GIT"="GIT") # List with names of all possible compartments
-  
-  ### Density of tissues/organs
-  d_tissue <- 1 #g/ml
-  d_skeleton <- 1.92 #g/ml
-  d_adipose <- 0.940 #g/ml
-  
-  Q_total <- (1.54*mass^0.75)*60 # Total Cardiac Output (ml/h)
-  
-  Total_Blood <- 0.06*mass+0.77 # Total blood volume (ml)
-  
-  fr_ad <- 0.0199*mass + 1.644 # w in g,  Brown et al.1997 p.420. This equation gives the  adipose % of body weight 
-  
-  
-  # Physiological parameters units
-  # V_blood, V_ven, V_art (ml): Volume of total blood, venous blood and arterial blood
-  # w_i (g):                    mass of tissue or organ "i"
-  # V_tis_i (ml):                volume of tissue or organ "i"
-  # V_cap_i (ml):                volume of capillary blood in tissue "i"
-  # Q_i, Q_total (ml/h):        regional blood flow of tissue or organ "i"
-  
-  fractions <- matrix(rep(NA, 4*13), ncol = 4)
-  colnames(fractions) <- c("Tissue.weight.fraction.(%.of.BW)", "Regional.flow.fractions.(%.of.total.cardiac.output)",
-                        "Capillary.fractions.(fraction.of.tissue.volume)", "Macrophage.fractions.(fraction.of.tissue.volume)" )
-  fractions[,1] <- c(NA, 0.33, 0.730, 0.570, 0.200, 0.500, 3.660, 0.011, 10.000, NA, 19.030, 40.000, 2.700)
-  fractions[,2] <- c(NA, 4.90, 14.10, 2.00, 1.22, 100.00, 17.40, 1.11, 12.20, 7.00, 5.80, 27.80, 14.00)
-  fractions[,3] <- c(0.0400, 0.2600, 0.1600, 0.0300, 0.2200, 0.3600, 0.2100, 0.0770, 0.0400, 0.0055, 0.0200, 0.0143, 0.0500)
-  fractions[,4] <- c(0.02, 0.02, 0.02, 0.04, 0.30, 0.04, 0.10, 0.02, 0.04, 0.04, 0.02, 0.02, NA)
-  rownames(fractions) <- all_comps
-  
-  #Tissue weight fraction 
-  Tissue_fractions <- fractions[,1]/100 # % of BW. Na values refers to the volume of the rest organs(RoB)
-  Tissue_fractions[10] <- fr_ad/100
-  #Regional blood flow fraction
-  Regional_flow_fractions <- fractions[,2]/100 # % of total cardiac output
-  #Capillary volume fractions (fractions of tissue volume)
-  Capillary_fractions <- fractions[,3] # of tissue volume
-
-  
-  W_tis <- rep(0,length(comp_names))
-  V_tis <- rep(0,length(comp_names))
-  V_cap <- rep(0,length(comp_names))
-  W_macro <- rep(0,length(comp_names))  #one more for blood compartment
-  Q <- rep(0,length(comp_names))
-  
-  # The following values were calculated by dividing the %ID/ g tissue with the %ID w/o free 48 from Table 2 of Kreyling et al. (2017)
-  # Thus, they represent the average mass, in grams, of the respective tissues in each time group.
-  liver_expw <- mean(c(8.57, 8.92, 9.30, 8.61, 9.20))
-  spleen_expw <- mean(c(0.93, 0.75, 0.97, 0.68, 0.71))
-  kidneys_expw <- mean(c(2.27, 2.36, 2.44, 2.11, 2.26))
-  lungs_expw <- mean(c(1.87, 1.60, 1.80, 1.48, 1.31))
-  heart_expw <- mean(c(0.89, 1.00, 1.00, 1.00, 0.88))
-  blood_expw <- mean(c(16.52, 17.45, 15.33, 18.50, 18.00))
-  carcass_expw <- mean(c(206.00, 203.33, 184.00, 202.00, 203.75))
-  skeleton_expw <- mean(c(26.15, 27.50, 25.56, 25.79, 25.26))
-  soft_tissues <- mean(c(228.57, 253.85, 214.29, 225.93, 231.04))
-  
-  ### Calculation of tissue weights  
-  W_tis[2] <- heart_expw
-  W_tis[3] <- kidneys_expw
-  W_tis[5] <- spleen_expw
-  W_tis[6] <- lungs_expw
-  W_tis[7] <- liver_expw
-  W_tis[9] <- skeleton_expw
-  W_tis[13] <- Tissue_fractions[13]*mass
-  
-  
-  for (i in 1:length(comp_names)) {
-    control <- comp_names[i]
+                        "Muscles"=NA, "GIT"="GIT") #used as input in function, compartments that are used in pbpk
     
-    Regional_flow_fractions[i] <- ifelse(is.na(control), NA, Regional_flow_fractions[i])
-    Capillary_fractions[i] <- ifelse(is.na(control), NA, Capillary_fractions[i])
     
-    ###Calculation of tissue volumes
+    # List with names of all possible compartments
+    all_comps <- list("RoB"="RoB","Heart"="Heart", "Kidneys"="Kidneys", "Brain"="Brain", "Spleen"="Spleen",
+                      "Lungs"="Lungs", "Liver"="Liver", "Uterus"="Uterus", "Bone"="Bone", "Adipose"="Adipose", "Skin"="Skin", "Muscles"="Muscles",
+                      "GIT"="GIT") # List with names of all possible compartments
     
-    if (i==9){
-      V_tis[i] <- W_tis[i]/d_skeleton
-    } else if(i==10){
-      V_tis[i] <- W_tis[i]/d_adipose
-    } else{
-      V_tis[i] <- W_tis[i]/d_tissue 
+    ### Density of tissues/organs
+    d_tissue <- 1 #g/ml
+    d_skeleton <- 1.92 #g/ml
+    d_adipose <- 0.940 #g/ml
+    
+    Q_total <- (1.54*mass^0.75)*60 # Total Cardiac Output (ml/h)
+    
+    Total_Blood <- 0.06*mass+0.77 # Total blood volume (ml)
+    
+    fr_ad <- 0.0199*mass + 1.644 # w in g,  Brown et al.1997 p.420. This equation gives the  adipose % of body weight 
+    
+    
+    # Physiological parameters units
+    # V_blood, V_ven, V_art (ml): Volume of total blood, venous blood and arterial blood
+    # w_i (g):                    mass of tissue or organ "i"
+    # V_tis_i (ml):                volume of tissue or organ "i"
+    # V_cap_i (ml):                volume of capillary blood in tissue "i"
+    # Q_i, Q_total (ml/h):        regional blood flow of tissue or organ "i"
+    
+    fractions <- matrix(rep(NA, 4*13), ncol = 4)
+    colnames(fractions) <- c("Tissue.weight.fraction.(%.of.BW)", "Regional.flow.fractions.(%.of.total.cardiac.output)",
+                             "Capillary.fractions.(fraction.of.tissue.volume)", "Macrophage.fractions.(fraction.of.tissue.volume)" )
+    fractions[,1] <- c(NA, 0.33, 0.730, 0.570, 0.200, 0.500, 3.660, 0.011, 10.000, NA, 19.030, 40.000, 2.700)
+    fractions[,2] <- c(NA, 4.90, 14.10, 2.00, 1.22, 100.00, 17.40, 1.11, 12.20, 7.00, 5.80, 27.80, 14.00)
+    fractions[,3] <- c(0.0400, 0.2600, 0.1600, 0.0300, 0.2200, 0.3600, 0.2100, 0.0770, 0.0400, 0.0055, 0.0200, 0.0143, 0.0500)
+    fractions[,4] <- c(0.02, 0.02, 0.02, 0.04, 0.30, 0.04, 0.10, 0.02, 0.04, 0.04, 0.02, 0.02, NA)
+    rownames(fractions) <- all_comps
+    
+    #Tissue weight fraction 
+    Tissue_fractions <- fractions[,1]/100 # % of BW. Na values refers to the volume of the rest organs(RoB)
+    Tissue_fractions[10] <- fr_ad/100
+    #Regional blood flow fraction
+    Regional_flow_fractions <- fractions[,2]/100 # % of total cardiac output
+    #Capillary volume fractions (fractions of tissue volume)
+    Capillary_fractions <- fractions[,3] # of tissue volume
+    
+    
+    W_tis <- rep(0,length(comp_names))
+    V_tis <- rep(0,length(comp_names))
+    V_cap <- rep(0,length(comp_names))
+    W_macro <- rep(0,length(comp_names))  #one more for blood compartment
+    Q <- rep(0,length(comp_names))
+    
+    # The following values were calculated by dividing the %ID/ g tissue with the %ID w/o free 48 from Table 2 of Kreyling et al. (2017)
+    # Thus, they represent the average mass, in grams, of the respective tissues in each time group.
+    liver_expw <- mean(c(8.57, 8.92, 9.30, 8.61, 9.20))
+    spleen_expw <- mean(c(0.93, 0.75, 0.97, 0.68, 0.71))
+    kidneys_expw <- mean(c(2.27, 2.36, 2.44, 2.11, 2.26))
+    lungs_expw <- mean(c(1.87, 1.60, 1.80, 1.48, 1.31))
+    heart_expw <- mean(c(0.89, 1.00, 1.00, 1.00, 0.88))
+    blood_expw <- mean(c(16.52, 17.45, 15.33, 18.50, 18.00))
+    carcass_expw <- mean(c(206.00, 203.33, 184.00, 202.00, 203.75))
+    skeleton_expw <- mean(c(26.15, 27.50, 25.56, 25.79, 25.26))
+    soft_tissues <- mean(c(228.57, 253.85, 214.29, 225.93, 231.04))
+    
+    # ### Calculation of tissue weights  
+    # W_tis[2] <- heart_expw
+    # W_tis[3] <- kidneys_expw
+    # W_tis[5] <- spleen_expw
+    # W_tis[6] <- lungs_expw
+    # W_tis[7] <- liver_expw
+    # W_tis[9] <- skeleton_expw
+    # W_tis[13] <- Tissue_fractions[13]*mass
+    # 
+    
+    for (i in 1:length(comp_names)) {
+      control <- comp_names[i]
+      
+      Regional_flow_fractions[i] <- ifelse(is.na(control), NA, Regional_flow_fractions[i])
+      Capillary_fractions[i] <- ifelse(is.na(control), NA, Capillary_fractions[i])
+      Tissue_fractions[i] <- ifelse(is.na(control), NA, Tissue_fractions[i])
+      ###Calculation of tissue volumes
+      W_tis[i] <- mass*Tissue_fractions[i]
+      if (i==9){
+        V_tis[i] <- W_tis[i]/d_skeleton
+      } else if(i==10){
+        V_tis[i] <- W_tis[i]/d_adipose
+      } else{
+        V_tis[i] <- W_tis[i]/d_tissue 
+      }
+      
+      ###Calculation of capillary volumes
+      V_cap[i] <- V_tis[i]*Capillary_fractions[i]
+      
+      ###Calculation of regional blood flows
+      Q[i] <- Q_total*Regional_flow_fractions[i]
     }
     
-    ###Calculation of capillary volumes
-    V_cap[i] <- V_tis[i]*Capillary_fractions[i]
     
-    ###Calculation of regional blood flows
-    Q[i] <- Q_total*Regional_flow_fractions[i]
-  }
- 
-  
-  ### Calculations for "Soft tissue" compartment
-  W_tis[1] <- mass - sum(W_tis[2:length(W_tis)], na.rm = TRUE)-Total_Blood
-  V_tis[1] <- W_tis[1]/d_adipose     
-  Q[1] <- Q_total - sum(Q[2:length(Q)],na.rm = TRUE) + Q[6]
-  V_cap[1] <- V_tis[1]*Capillary_fractions[1] #Total_Blood - Vven - Vart - sum(V_cap[2:length(V_cap)], na.rm = TRUE)
-
-  parameters <- matrix(c(W_tis[],V_tis[],V_cap[],Q[],W_macro[]), ncol = 5)
-  colnames(parameters) <- c("W_tis", "V_tis", "V_cap", "Q", "W_macro")
-  rownames(parameters) <- all_comps
-  
-  Vven=0.64*Total_Blood
-  Vart=0.15*Total_Blood
-  Wm_ven=0.01*Vven
-  Wm_art=0.01*Vart
-  
-  return(list(
-    "Q_total"=Q_total, "V_blood"=Total_Blood, "V_ven"=Vven, "V_art"=Vart,
+    ### Calculations for "Soft tissue" compartment
+    W_tis[1] <- mass - sum(W_tis[2:length(W_tis)], na.rm = TRUE)-Total_Blood
+    V_tis[1] <- W_tis[1]/d_adipose     
+    Q[1] <- Q_total - sum(Q[2:length(Q)],na.rm = TRUE) + Q[6]
+    V_cap[1] <- V_tis[1]*Capillary_fractions[1] #Total_Blood - Vven - Vart - sum(V_cap[2:length(V_cap)], na.rm = TRUE)
     
-    "w_rob"=parameters[1,1], "w_ht"=parameters[2,1], "w_ki"=parameters[3,1], "w_spl"=parameters[5,1], "w_lu"=parameters[6,1], "w_li"=parameters[7,1], "w_bone"=parameters[9,1], "w_git"=parameters[13,1],
+    parameters <- matrix(c(W_tis[],V_tis[],V_cap[],Q[],W_macro[]), ncol = 5)
+    colnames(parameters) <- c("W_tis", "V_tis", "V_cap", "Q", "W_macro")
+    rownames(parameters) <- all_comps
     
-    "V_tis_rob"=parameters[1,2], "V_tis_ht"=parameters[2,2], "V_tis_ki"=parameters[3,2], "V_tis_spl"=parameters[5,2], "V_tis_lu"=parameters[6,2], "V_tis_li"=parameters[7,2], "V_tis_bone"=parameters[9,2], "V_tis_git"=parameters[13,2], 
+    Vven=0.64*Total_Blood
+    Vart=0.15*Total_Blood
+    Wm_ven=0.01*Vven
+    Wm_art=0.01*Vart
     
-    "V_cap_rob"=parameters[1,3], "V_cap_ht"=parameters[2,3], "V_cap_ki"=parameters[3,3], "V_cap_spl"=parameters[5,3], "V_cap_lu"=parameters[6,3], "V_cap_li"=parameters[7,3], "V_cap_bone"=parameters[9,3], "V_cap_git"=parameters[13,3],
-    
-    "Q_rob"=parameters[1,4], "Q_ht"=parameters[2,4], "Q_ki"=parameters[3,4], "Q_spl"=parameters[5,4], "Q_lu"=parameters[6,4], "Q_li"=parameters[7,4], "Q_bone"=parameters[9,4], "Q_git"=parameters[13,4],
-    "dose" = dose, "administration" = administration_time
-    
-  ))
+    return(list(
+      "Q_total"=Q_total, "V_blood"=Total_Blood, "V_ven"=Vven, "V_art"=Vart,
+      
+      "w_rob"=parameters[1,1], "w_ht"=parameters[2,1], "w_ki"=parameters[3,1], "w_spl"=parameters[5,1], "w_lu"=parameters[6,1], "w_li"=parameters[7,1], "w_bone"=parameters[9,1], "w_git"=parameters[13,1],
+      
+      "V_tis_rob"=parameters[1,2], "V_tis_ht"=parameters[2,2], "V_tis_ki"=parameters[3,2], "V_tis_spl"=parameters[5,2], "V_tis_lu"=parameters[6,2], "V_tis_li"=parameters[7,2], "V_tis_bone"=parameters[9,2], "V_tis_git"=parameters[13,2], 
+      
+      "V_cap_rob"=parameters[1,3], "V_cap_ht"=parameters[2,3], "V_cap_ki"=parameters[3,3], "V_cap_spl"=parameters[5,3], "V_cap_lu"=parameters[6,3], "V_cap_li"=parameters[7,3], "V_cap_bone"=parameters[9,3], "V_cap_git"=parameters[13,3],
+      
+      "Q_rob"=parameters[1,4], "Q_ht"=parameters[2,4], "Q_ki"=parameters[3,4], "Q_spl"=parameters[5,4], "Q_lu"=parameters[6,4], "Q_li"=parameters[7,4], "Q_bone"=parameters[9,4], "Q_git"=parameters[13,4],
+      "dose" = dose, "administration" = administration_time
+      
+    ))
   })
 }
 
@@ -347,8 +347,8 @@ ode.func <- function(time, Initial.values, Parameters, custom.func){
 ####################
 ### User's INPUT ###
 ####################
-mass <- 250 # g  
-dose <-2.5 # mg TiO2
+mass <- 200 # g  
+dose <-10 # mg TiO2
 administration_time = 0.01
 user_input <-list("dose" = dose, "mass" = mass, "administration_time" = administration_time)
 predicted.feats <- c( "Blood",  "Heart", "Lungs", "Liver", "Spleen", "Kidneys", "Git", "Bone", "RoB",
@@ -359,7 +359,7 @@ inits <- create.inits(params)
 events <- create.events(params)
 
 
-sample_time <- seq(0, 30*24, 1)
+sample_time <- seq(0, 10, 1)
 solution <- ode(times = sample_time,  func = ode.func, y = inits, parms = params, 
                 custom.func = custom.func, method="lsodes",  events = events)
 

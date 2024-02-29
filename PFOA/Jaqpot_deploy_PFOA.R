@@ -168,19 +168,19 @@ create.params  <- function(user_input){
                  "kbile" = kbile, "kurine" = kurine, 
                  "kunabs" = kunabs, "GE" = GE,"Km_baso" = Km_baso,
                  
-                 "Pliver" = Pliver*0.51,  "Pbrain" = Pbrain* 1.07,
-                 "Free" = Free*0.5,
-                 "Vmax_apical" = Vmax_apical*0.53,  "kabs" = kabs*0.0016, 
+                 "Pliver" = Pliver*0.384,  "Pbrain" = Pbrain* 1.13,
+                 "Free" = Free*0.882,
+                 "Vmax_apical" = Vmax_apical*1.489,  "kabs" = kabs*0.40, 
                  
-                 "Prest" = Prest*0.51, 
-                 "Pgonads" = Pgonads*0.51,
-                 "Pspleen" = Pspleen*0.51, "Pheart" = Pheart*0.51,
-                 "Plung" = Plung*0.51,  "Pstomach" =Pstomach*0.51, 
-                 "Pintestine" = Pintestine*0.51,
+                 "Prest" = Prest, 
+                 "Pgonads" = Pgonads,
+                 "Pspleen" = Pspleen, "Pheart" = Pheart,
+                 "Plung" = Plung,  "Pstomach" =Pstomach, 
+                 "Pintestine" = Pintestine,
                  
-                 "k0" = k0*0.53, 
-                 "kefflux" = kefflux*0.5,'kdif' = kdif*0.5,
-                 "Vmax_baso" = Vmax_baso*0.5,
+                 "k0" = k0*0.40, 
+                 "kefflux" = kefflux*1.489,'kdif' = kdif*1.489,
+                 "Vmax_baso" = Vmax_baso*0.40,
                  
                  
                  "admin.type" = admin.type,
@@ -323,7 +323,7 @@ ode.func <- function(time, inits, params, custom.func){
     dAfeces = kbile*Aliver + kunabs*Aintestine_lumen #rate of change in the feces compartment (mg/h)
     
     #Liver
-    dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver + kabs*Aintestine_lumen + k0*Astomach_lumen +
+    dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver+
       Qspleen*CVspleen*Free +Qstomach*CVstomach*Free+ Qintestine*CVintestine*Free-
       (QL_hepatic_artery+Qspleen+Qstomach+Qintestine)*CVliver*Free#rate of change in the liver (mg/h)
     dAbile = kbile*Aliver  
@@ -382,11 +382,11 @@ ode.func <- function(time, inits, params, custom.func){
 #===============
 
 BW <- 0.2#kg 
-admin.type <- "b" #iv or oral
-admin.dose <- 5 # mg
+admin.type <- "oral" #iv or oral
+admin.dose <- 1# mg
 user_input <-list("BW" = BW  , 
                   "admin.type" = admin.type,
-                  "admin.time" = 0.01, "admin.dose" = admin.dose)
+                  "admin.time" = 0.0001, "admin.dose" = admin.dose)
 
 predicted.feats <- c( "Cplasma_ven","Cplasma_art" ,"Cliver", "Ckidneys",
                       "Cbrain","Cintestine","Ctestis","Cspleen","Cheart","Clung", "Cstomach","Ccarcass")
@@ -398,16 +398,13 @@ parameters <- create.params( list("BW" = BW  ,
 inits <- create.inits(parameters)
 
 events <- create.events(parameters)
-sample_time <- 0:100
-test <- deSolve::ode(times = sample_time,  func = ode.func,
+sample_time <- 0:10
+test <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
                      y = inits, parms = parameters, events = events,
-                     method="lsodes",rtol = 1e-7, atol = 1e-7)
+                     method="lsodes",rtol = 1e-7, atol = 1e-7))
 
 jaqpotr::login.cred()
 jaqpotr::deploy.pbpk(user.input = user_input,out.vars = predicted.feats, create.params = create.params,
                      create.inits = create.inits, create.events = create.events, custom.func = custom.func,
                      ode.fun = ode.fun) 
 
-user_input<- data.frame("BW" = BW  , 
-                        "admin.type" = admin.type,
-                        "admin.time" = 0.01, "admin.dose" = admin.dose)

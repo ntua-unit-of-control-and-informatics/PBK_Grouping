@@ -180,7 +180,7 @@ create.params  <- function(user_input){
                  
                  "Pliver" = Pliver*parameter_values[2],  "Pbrain" = Pbrain*parameter_values[3],
                  "Free" = Free*parameter_values[5],
-                 "Vmax_baso" = Vmax_baso*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
+                 "Vmax_apical" = Vmax_apical*parameter_values[6],  "kabs" = kabs*parameter_values[7], 
                  
                  "Prest" = Prest*CF[1], 
                  "Pgonads" = Pgonads*CF[1],
@@ -190,7 +190,7 @@ create.params  <- function(user_input){
                  
                  "k0" = k0*CF[2], 
                  "kefflux" = kefflux*CF[3],'kdif' = kdif*CF[4],
-                 "Vmax_apical" = Vmax_apical*CF[5],
+                 "Vmax_baso" = Vmax_baso*CF[5],
                  
                  
                  "admin.type" = admin.type,
@@ -331,7 +331,7 @@ ode.func <- function(time, inits, params, custom.func){
     dAfeces = kbile*Aliver + kunabs*Aintestine_lumen #rate of change in the feces compartment (mg/h)
     
     #Liver
-    dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver + kabs*Aintestine_lumen + k0*Astomach_lumen +
+    dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver  +
       Qspleen*CVspleen*Free +Qstomach*CVstomach*Free+ Qintestine*CVintestine*Free-
       (QL_hepatic_artery+Qspleen+Qstomach+Qintestine)*CVliver*Free#rate of change in the liver (mg/h)
     dAbile = kbile*Aliver  
@@ -774,7 +774,7 @@ plot1 <-  ggplot(data = serum_predictions)+
   labs(y = "Concentration (mg/L)",x = "Time (hours)")+
   theme(plot.title = element_text(hjust = 0.5))+
   theme_light() + 
-  # scale_y_log10()+
+  scale_y_log10()+
   scale_color_manual("Treatment", values=cls)+
   theme(  legend.justification = "top" ,
           legend.key.size = unit(1.5, 'cm'),  
@@ -806,8 +806,8 @@ plot2 <- ggplot(data = tissue_predictions)+
   geom_point(data = df_tissue_male, aes(x = Time, y = Mass, color = Tissue), size = 4) +
   labs(y = "Concentration (mg/L)",x = "Time (hours)")+
   theme_light() + 
-  scale_y_log10()+
-  coord_cartesian(ylim = c(0.1, 200))+
+  #scale_y_log10()+
+  coord_cartesian(ylim = c(0.1, 72))+
   scale_color_manual("Tissue", values=cls)+
   theme(  legend.justification = "top" ,
           legend.key.size = unit(1.5, 'cm'),  

@@ -185,7 +185,7 @@ ga_fitness <- function(chromosome)
       CLE_u <- 0
       
       
-      # Concentrations (micro grams of NPs)/(g tissue)
+      # Concentrations (ug of NPs)/(g tissue)
       C_ht <- M_ht/w_ht
       C_cap_ht <- M_cap_ht/V_cap_ht
       C_lu <- M_lu/w_lu

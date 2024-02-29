@@ -1,5 +1,5 @@
 library(deSolve)
-setwd("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation")
+setwd("/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation")
 
 
 #####################################
@@ -89,24 +89,24 @@ create.params <- function(user_input){
     skeleton_expw <- mean(c(26.15, 27.50, 25.56, 25.79, 25.26))
     soft_tissues <- mean(c(228.57, 253.85, 214.29, 225.93, 231.04))
     
-    ### Calculation of tissue weights  
-    W_tis[2] <- heart_expw
-    W_tis[3] <- kidneys_expw
-    W_tis[5] <- spleen_expw
-    W_tis[6] <- lungs_expw
-    W_tis[7] <- liver_expw
-    W_tis[9] <- skeleton_expw
-    W_tis[13] <- Tissue_fractions[13]*mass
-    
+    # ### Calculation of tissue weights  
+    # W_tis[2] <- heart_expw
+    # W_tis[3] <- kidneys_expw
+    # W_tis[5] <- spleen_expw
+    # W_tis[6] <- lungs_expw
+    # W_tis[7] <- liver_expw
+    # W_tis[9] <- skeleton_expw
+    # W_tis[13] <- Tissue_fractions[13]*mass
+    # 
     
     for (i in 1:length(comp_names)) {
       control <- comp_names[i]
       
       Regional_flow_fractions[i] <- ifelse(is.na(control), NA, Regional_flow_fractions[i])
       Capillary_fractions[i] <- ifelse(is.na(control), NA, Capillary_fractions[i])
-      
+      Tissue_fractions[i] <- ifelse(is.na(control), NA, Tissue_fractions[i])
       ###Calculation of tissue volumes
-      
+      W_tis[i] <- mass*Tissue_fractions[i]
       if (i==9){
         V_tis[i] <- W_tis[i]/d_skeleton
       } else if(i==10){
@@ -358,10 +358,10 @@ ode.func <- function(time, Initial.values, Parameters, custom.func){
 # The units of the values are ng Ti per g of tissue
 mean_values <- openxlsx::read.xlsx("Data/Disdier_data/Disdier_data.xlsx", sheet=2,  colNames = T, rowNames = F)
 # CORRECT THE BLOOD DATA 
-blood_cells_data <- openxlsx::read.xlsx("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/blood_data.xlsx", sheet=2)
+blood_cells_data <- openxlsx::read.xlsx("/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/blood_data.xlsx", sheet=2)
 blood_cells_data$Abs_mean[which(blood_cells_data$Abs_mean < 0)] <- min(blood_cells_data$Abs_mean[-which(blood_cells_data$Abs_mean < 0)])
 
-plasma_data <- openxlsx::read.xlsx("/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/plasma_data.xlsx", sheet=2)
+plasma_data <- openxlsx::read.xlsx("/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation/Data/Disdier_data/plasma_data.xlsx", sheet=2)
 plasma_data$Abs_mean[which(plasma_data$Abs_mean < 0)] <- min(plasma_data$Abs_mean[-which(plasma_data$Abs_mean < 0)])
 
 # plasma volume to total blood volume ratio
@@ -477,5 +477,5 @@ for (j in 2:dim(mean_values)[2]) {
 results_df <- results_df[-1,]
 
 write.csv(results_df,
-          "/Users/vassilis/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results_data/Disdier_results.csv",
+          "/Users/ptsir/Documents/GitHub/PBK_Grouping/TiO2/Validation/Validation_results/Disdier_results.csv",
           row.names =F)
