@@ -336,7 +336,7 @@ ga_fitness <- function(chromosome)
       dAfeces = kbile*Aliver + kunabs*Aintestine_lumen #rate of change in the feces compartment (mg/h)
       
       #Liver
-      dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver + kabs*Aintestine_lumen + k0*Astomach_lumen +
+      dAliver = QL_hepatic_artery*Cart*Free - kbile*Aliver +
         Qspleen*CVspleen*Free +Qstomach*CVstomach*Free+ Qintestine*CVintestine*Free-
         (QL_hepatic_artery+Qspleen+Qstomach+Qintestine)*CVliver*Free#rate of change in the liver (mg/h)
       dAbile = kbile*Aliver  
