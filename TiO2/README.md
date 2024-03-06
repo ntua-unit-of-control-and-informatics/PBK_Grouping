@@ -1,6 +1,6 @@
 
 ## Data
-All R scripts are self-contained and need two xlsx files to run, found in the Data folder. The first one, "Rat physiological parameters.xlsx", contains the physiological parameters of the rat, while the second one, "Kreyling-IV-data.xlsx" includes the rat biodistribution data used for calibrating the model parameters, drawn from Kreyling et al. (2017).The 'data' folder also contains .RData files that reproduce the respective models. The 'validation' folder contains data and R scripts used for generating the validation plots. In each script, the user should search for the command `setwd()` and insert the appropriate directory. 
+All R scripts are self-contained and need two xlsx files to run, found in the Data folder. The first one, "Rat physiological parameters.xlsx", contains the physiological parameters of the rat, while the second one, "Kreyling-IV-data.xlsx" includes the rat biodistribution data used for calibrating the model parameters, drawn from Kreyling et al. (2017).The 'data' folder also contains .RData files that reproduce the respective models. The 'validation' folder contains data from the studies of Fabian et al. (2008), Garaets et al. (2014) and Disdier et al. (2016), as well as R scripts, and both are used for generating the validation plots. In each script, the user should search for the command `setwd()` and insert the appropriate directory. 
 
 ## R packages
 Users should downladed the xlsx files and then use the Nevertheless, The R packages that users needs to install are: 
@@ -9,6 +9,7 @@ Users should downladed the xlsx files and then use the Nevertheless, The R packa
 * *GA*, for running the genetic algorithm 
 * *ggplot2* for making the plots, and
 * *deSolve*, for solving the ODE system
+* 
 ## Script explanation
 Once these packages are installed, all R scripts can be excecuded. The utility of each script is explained below:
 * "Metric_selection.R"  --> Contains R code for selecting the most appropriate metric to be used as objective function in the optimization problem. Note that the MANG estimation approach is used and the models developed using the various metrics use the same initialization.
