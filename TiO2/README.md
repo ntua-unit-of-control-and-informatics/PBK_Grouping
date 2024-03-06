@@ -1,6 +1,7 @@
 
 ## Data
-All R scripts are self-contained and need two xlsx files to run, found in the Data folder. The first one, "Rat physiological parameters.xlsx", contains the physiological parameters of the rat, while the second one, "Kreyling-IV-data.xlsx" includes the rat biodistribution data used for calibrating the model parameters, drawn from Kreyling et al. (2017). Both scripts must be downloaded and placed in the same folder, which will act as the working directory. In each script, the user should search for the command `setwd()` and insert as argument the aforementioned directory where the data reside. 
+All R scripts are self-contained and need two xlsx files to run, found in the Data folder. The first one, "Rat physiological parameters.xlsx", contains the physiological parameters of the rat, while the second one, "Kreyling-IV-data.xlsx" includes the rat biodistribution data used for calibrating the model parameters, drawn from Kreyling et al. (2017).The 'data' folder also contains .RData files that reproduce the respective models. The 'validation' folder contains data and R scripts used for generating the validation plots. In each script, the user should search for the command `setwd()` and insert the appropriate directory. 
+
 ## R packages
 Users should downladed the xlsx files and then use the Nevertheless, The R packages that users needs to install are: 
 * *openxlsx*, for reading the xlsx files
