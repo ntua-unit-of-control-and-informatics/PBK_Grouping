@@ -1,7 +1,6 @@
 library(deSolve)
 library(ggplot2)
 setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA")
-#test
 #=========================
 #1. Parameters of the model
 #=========================
