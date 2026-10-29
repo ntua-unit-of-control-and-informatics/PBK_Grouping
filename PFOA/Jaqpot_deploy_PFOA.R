@@ -401,8 +401,10 @@ test <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
                      y = inits, parms = parameters, events = events,
                      method="lsodes",rtol = 1e-7, atol = 1e-7))
 
-jaqpotr::login.cred()
-jaqpotr::deploy.pbpk(user.input = user_input,out.vars = predicted.feats, create.params = create.params,
-                     create.inits = create.inits, create.events = create.events, custom.func = custom.func,
-                     ode.fun = ode.func) 
+# Deploy the model on the Jaqpot server to create a web service
+deploy.pbpk(user.input = user_input,out.vars = predicted.feats,
+                     create.params = create.params,  create.inits = create.inits,
+                     create.events = create.events, custom.func = custom.func,
+                     ode.fun =  ode.func, envFile = ".env")
+
 
