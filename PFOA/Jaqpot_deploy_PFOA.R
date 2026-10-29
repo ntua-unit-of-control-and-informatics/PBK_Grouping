@@ -1,6 +1,5 @@
 library(deSolve)
 library(ggplot2)
-setwd("C:/Users/ptsir/Documents/GitHub/PBK_Grouping/PFOA")
 #=========================
 #1. Parameters of the model
 #=========================
@@ -405,5 +404,5 @@ test <- data.frame(deSolve::ode(times = sample_time,  func = ode.func,
 jaqpotr::login.cred()
 jaqpotr::deploy.pbpk(user.input = user_input,out.vars = predicted.feats, create.params = create.params,
                      create.inits = create.inits, create.events = create.events, custom.func = custom.func,
-                     ode.fun = ode.fun) 
+                     ode.fun = ode.func) 
 
